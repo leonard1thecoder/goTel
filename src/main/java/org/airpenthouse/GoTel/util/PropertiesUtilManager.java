@@ -34,7 +34,7 @@ public class PropertiesUtilManager {
             applicationPropertiesFile = new File(ownPropertiesFilePath);
 
         String keyFinder = System.getProperty(key);
-        try (FileReader reader = new FileReader(applicationPropertiesFile); BufferedReader bReader = new BufferedReader(reader);) {
+        try (FileReader reader = new FileReader(applicationPropertiesFile); BufferedReader bReader = new BufferedReader(reader)) {
 
             while (true) {
                 String keyValuePair = bReader.readLine();
