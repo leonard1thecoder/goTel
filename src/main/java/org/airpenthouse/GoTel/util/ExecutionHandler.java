@@ -5,7 +5,7 @@ import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.entities.country.CountriesEntity;
 import org.airpenthouse.GoTel.entities.languanges.WorldLanguagesEntity;
 import org.airpenthouse.GoTel.services.city.CitiesService;
-import org.airpenthouse.GoTel.services.country.Country;
+import org.airpenthouse.GoTel.services.country.CountriesService;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
@@ -48,18 +48,22 @@ public abstract class ExecutionHandler {
     }
 
 
-    protected Set<CountriesEntity> executeCountriesEntity(CountriesEntity call) {
+    protected Set<CountriesEntity> executeCountriesEntity() {
         Future<Set<CountriesEntity>> futureCollection;
+        LOG.info("OK********&&&&&");
+        CountriesEntity countryEntity = new CountriesEntity();
 
         try {
-            futureCollection = entityService.submit(call);
+            futureCollection = entityService.submit(countryEntity);
             countriesCollection = futureCollection.get(15, TimeUnit.SECONDS);
+            LOG.info("initializing the countries entity entity was successful " + countriesCollection);
 
         } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
             throw new RuntimeException("Error occurred :" + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             entityService.shutdown();
-
             return Optional.of(countriesCollection).get();
 
         }
@@ -112,15 +116,18 @@ public abstract class ExecutionHandler {
         }
     }
 
-    protected Set<CountriesEntity> executeCountriesService(Country call) {
+    protected Set<CountriesEntity> executeCountriesService() {
         Future<Set<CountriesEntity>> futureCollection;
         ExecutorService service = Executors.newCachedThreadPool();
+        CountriesService countryService = new CountriesService();
         try {
-            futureCollection = service.submit(call);
+            futureCollection = service.submit(countryService);
             this.countriesServiceCollection = futureCollection.get(15, TimeUnit.SECONDS);
-            LOG.info("initializing the cities service was successful");
+            LOG.info("initializing the countries service was successful" + this.countriesServiceCollection);
         } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
             throw new RuntimeException("Error occurred :" + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             service.shutdown();
 
