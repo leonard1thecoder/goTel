@@ -49,6 +49,8 @@ class Connect implements Callable<Connection> {
             service = Executors.newCachedThreadPool();
             connectionFuture = service.submit(new Connect());
             connectionStatus.set(true);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if (service != null && connectionStatus.get()) {
                 service.shutdown();
