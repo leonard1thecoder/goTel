@@ -105,7 +105,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
                     try {
                         System.out.println("Three");
                         ps = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByCountryCode);
-                        ps.setString(1, this.getCountryCode());
+                        //  ps.setString(1, this.getCountryCode());
                         System.out.println(addDataFromDBToList(ps.executeQuery()));
                         return addDataFromDBToList(ps.executeQuery());
                     } catch (Exception e) {
@@ -139,19 +139,19 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
         return null;
     }
 
-    private String getCountryCode() {
-        Set<CountriesEntity> dataStructure = this.entity.getCountryCodeFromDB();
-
-        if (dataStructure.size() == 1) {
-            for (CountriesEntity entity : dataStructure) {
-                return entity.getCountryCode();
-            }
-
-            return null;
-        } else {
-            throw new IllegalStateException("The data structure contains more than 2 values or zero check : " + dataStructure);
-        }
-    }
+//    private String getCountryCode() {
+//        Set<CountriesEntity> dataStructure = this.entity.getCountryCodeFromDB();
+//
+//        if (dataStructure.size() == 1) {
+//            for (CountriesEntity entity : dataStructure) {
+//                return entity.getCountryCode();
+//            }
+//
+//            return null;
+//        } else {
+//            throw new IllegalStateException("The data structure contains more than 2 values or zero check : " + dataStructure);
+//        }
+//    }
 
     private Set<CitiesEntity> addDataFromDBToList(ResultSet set) throws SQLException {
         while (set.next()) {
