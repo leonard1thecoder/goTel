@@ -25,8 +25,6 @@ public abstract class ExecutionHandler {
     private Set<CitiesEntity> citiesServiceCollection = new CopyOnWriteArraySet<>();
     private Set<CountriesEntity> countriesServiceCollection = new CopyOnWriteArraySet<>();
 
-    private CountriesEntity countriesEntity;
-    private WorldLanguagesEntity worldLanguagesEntity;
     private final ExecutorService entityService = Executors.newCachedThreadPool();
 
 
@@ -50,11 +48,11 @@ public abstract class ExecutionHandler {
 
     protected Set<CountriesEntity> executeCountriesEntity() {
         Future<Set<CountriesEntity>> futureCollection;
-        LOG.info("OK********&&&&&");
-        CountriesEntity countryEntity = new CountriesEntity();
 
+        CountriesEntity countryEntity = new CountriesEntity();
+        ExecutorService service = Executors.newCachedThreadPool();
         try {
-            futureCollection = entityService.submit(countryEntity);
+            futureCollection = service.submit(countryEntity);
             countriesCollection = futureCollection.get(15, TimeUnit.SECONDS);
             LOG.info("initializing the countries entity entity was successful " + countriesCollection);
 
