@@ -21,8 +21,11 @@ public class PropertiesUtilManager {
     private static boolean useOwnPath;
 
     public static void setOwnPropertiesFilePath(String propertiesFilePath) {
+        if (propertiesFilePath.endsWith(".properties")) {
         ownPropertiesFilePath = propertiesFilePath;
         useOwnPath = true;
+        } else
+            throw new RuntimeException("The file it's not properties file suffix is not .properties");
     }
 
     public static String getPropertiesValue(String key) {
