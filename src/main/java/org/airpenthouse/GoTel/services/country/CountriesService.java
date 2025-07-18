@@ -19,20 +19,34 @@ public final class CountriesService extends ExecutionHandler implements Callable
 
     private Set<CountriesEntity> getAllCountries() {
         ENTITY_TRIGGER = "FIND_ALL_COUNTRIES";
-        LOG.info("EXECURINg EnTITY" + super.executeCountriesEntity());
+        return Collections.unmodifiableSet(super.executeCountriesEntity());
+    }
+
+    private Set<CountriesEntity> getCountryByName() {
+        ENTITY_TRIGGER = "FIND_COUNTRY_BY_NAME";
+        return Collections.unmodifiableSet(super.executeCountriesEntity());
+    }
+
+    private Set<CountriesEntity> getCountryByContinent() {
+        ENTITY_TRIGGER = "FIND_COUNTRY_BY_CONTINENT";
+        return Collections.unmodifiableSet(super.executeCountriesEntity());
+    }
+
+    private Set<CountriesEntity> getCountryByRegion() {
+        ENTITY_TRIGGER = "FIND_COUNTRY_BY_REGION";
         return Collections.unmodifiableSet(super.executeCountriesEntity());
     }
 
     @Override
     public Set<CountriesEntity> call() throws Exception {
 
-        switch (SERVICE_HANDLER) {
-            case "FIND_ALL_COUNTRIES" -> {
-                return getAllCountries();
-            }
-
-        }
-        return null;
+        return switch (SERVICE_HANDLER) {
+            case "FIND_ALL_COUNTRIES" -> getAllCountries();
+            case "FIND_COUNTRY_BY_NAME" -> getCountryByName();
+            case "FIND_COUNTRY_BY_CONTINENT" -> getCountryByContinent();
+            case "FIND_COUNTRY_BY_REGION" -> getCountryByRegion();
+            default -> null;
+        };
     }
 }
 
