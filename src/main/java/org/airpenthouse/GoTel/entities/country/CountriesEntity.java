@@ -23,24 +23,26 @@ import java.util.concurrent.ConcurrentSkipListSet;
 @Component
 public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Comparable<CountriesEntity> {
 
-    @Getter
+
     private String countryName;
-    @Getter
+
     private String countryRegion;
-    @Getter
+
     private int population;
+
 
     private Set<CountriesEntity> countries;
     public static String ENTITY_TRIGGER = "FIND_ALL_COUNTRIES";
-    private String jdbcQueryFindAllCountries, jdbcQueryFindCountryCode, jdbcQueryFindCountryByname;
+    private String jdbcQueryFindAllCountries, jdbcQueryFindCountryCode, jdbcQueryFindCountryByName, jdbcQueryFindCountryByRegion, jdbcQueryFindCountryByContinent;
 
     public CountriesEntity() {
         super();
 
         this.countries = new ConcurrentSkipListSet<>();
         jdbcQueryFindAllCountries = PropertiesUtilManager.getPropertiesValue("jdbc.query.allCountries");
-        jdbcQueryFindCountryByname = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryByName");
-
+        jdbcQueryFindCountryByName = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryByName");
+        jdbcQueryFindCountryByContinent = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByContinent");
+        jdbcQueryFindCountryByRegion = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByRegion");
         jdbcQueryFindCountryCode = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryCodeByCountry");
 
         LOG.info(jdbcQueryFindAllCountries);
@@ -54,7 +56,7 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         PreparedStatement ps;
         try {
 
-            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByname);
+            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByName);
             LOG.info("OK#######");
             ps.setString(1, PropertiesUtilManager.getPropertiesValue("countryName"));
             ResultSet set = ps.executeQuery();
@@ -64,6 +66,33 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         }
     }
 
+    private Set<CountriesEntity> getCountryByContinent() {
+        PreparedStatement ps;
+        try {
+
+            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByName);
+            LOG.info("OK#######");
+            ps.setString(1, PropertiesUtilManager.getPropertiesValue("continentName"));
+            ResultSet set = ps.executeQuery();
+            return addDataFromDbToSet(set);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<CountriesEntity> getCountryByRegion() {
+        PreparedStatement ps;
+        try {
+
+            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByName);
+            LOG.info("OK#######");
+            ps.setString(1, PropertiesUtilManager.getPropertiesValue("regionName"));
+            ResultSet set = ps.executeQuery();
+            return addDataFromDbToSet(set);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private static final CommonEntityMethod commonEntityMethod;
 
     @Override
@@ -104,14 +133,13 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
 
     @Override
     public Set<CountriesEntity> call() throws Exception {
-        switch (ENTITY_TRIGGER) {
-            case "FIND_ALL_COUNTRIES":
-                return getAllCountries();
-            case "FIND_COUNTRY_BY_NAME":
-                return getCountryByName();
-            default:
-                return null;
-        }
+        return switch (ENTITY_TRIGGER) {
+            case "FIND_ALL_COUNTRIES" -> getAllCountries();
+            case "FIND_COUNTRY_BY_NAME" -> getCountryByName();
+            case "FIND_COUNTRY_BY_CONTINENT" -> getCountryByContinent();
+            case "FIND_COUNTRY_BY_REGION" -> getCountryByRegion();
+            default -> null;
+        };
     }
 
 
