@@ -6,6 +6,7 @@ import org.airpenthouse.GoTel.entities.country.CountriesEntity;
 import org.airpenthouse.GoTel.entities.languanges.WorldLanguagesEntity;
 import org.airpenthouse.GoTel.services.city.CitiesService;
 import org.airpenthouse.GoTel.services.country.CountriesService;
+import org.airpenthouse.GoTel.services.language.WorldLanguagesService;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
@@ -68,11 +69,13 @@ public abstract class ExecutionHandler {
     }
 
 
-    protected Optional<Set<WorldLanguagesEntity>> executeWorldLanguagesEntity(WorldLanguagesEntity call) {
+    protected Set<WorldLanguagesEntity> executeWorldLanguagesEntity() {
         Future<Set<WorldLanguagesEntity>> futureCollection;
         ExecutorService service = Executors.newCachedThreadPool();
+        WorldLanguagesEntity worldLanguages = new WorldLanguagesEntity();
+
         try {
-            futureCollection = service.submit(call);
+            futureCollection = service.submit(worldLanguages);
             worldLanguagesCollection = futureCollection.get(15, TimeUnit.SECONDS);
 
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
@@ -80,7 +83,25 @@ public abstract class ExecutionHandler {
         } finally {
             service.shutdown();
 
-            return Optional.of(worldLanguagesCollection);
+            return Optional.of(worldLanguagesCollection).get();
+        }
+    }
+
+    protected Set<WorldLanguagesEntity> executeWorldLanguagesService() {
+        Future<Set<WorldLanguagesEntity>> futureCollection;
+        ExecutorService service = Executors.newCachedThreadPool();
+        WorldLanguagesService worldLanguages = new WorldLanguagesService();
+
+        try {
+            futureCollection = service.submit(worldLanguages);
+            worldLanguagesCollection = futureCollection.get(15, TimeUnit.SECONDS);
+
+        } catch (ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException("Error occurred :" + e.getMessage());
+        } finally {
+            service.shutdown();
+
+            return Optional.of(worldLanguagesCollection).get();
         }
     }
 
