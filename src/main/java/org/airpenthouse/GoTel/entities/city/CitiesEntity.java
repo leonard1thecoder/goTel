@@ -1,51 +1,63 @@
 package org.airpenthouse.GoTel.entities.city;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.entities.country.CountriesEntity;
+
 import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.LOG;
-import org.springframework.stereotype.Component;
-
+import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.airpenthouse.GoTel.util.PropertiesUtilManager.getPropertiesValue;
 
 
-@Component
+@AllArgsConstructor
 public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparable<CitiesEntity> {
 
-
+    private static CitiesEntity instance;
     private final static CommonEntityMethod commonEntityMethod;
-
+    @Getter
+    private int cityId;
     @Getter
     private String cityName;
     @Getter
     private String district;
-    private String countryCode;
     @Getter
-    private AtomicInteger population;
-    private final Set<CitiesEntity> cities = new ConcurrentSkipListSet<>();
-    private String jdbcQueryAllGetCities, jdbcQueryFindCityByName, jdbcInsertIntoQuery, jdbcUpdateCityPopulation, jdbcUpdateCityName, jdbcQueryFindCitiesByDistrict, jdbcQueryFindCitiesByCountryCode;
-    private final CountriesEntity entity = new CountriesEntity();
+    private String countryName;
+    @Getter
+    private int population;
+    @Getter
+    private String newLanguageName;
+    private Set<CitiesEntity> cities;
+    private String jdbcQueryAllGetCities, jdbcQueryFindCityWithNameAndCountry, jdbcQueryFindCityByName, jdbcInsertIntoQuery, jdbcUpdateCityPopulation, jdbcUpdateCityName, jdbcQueryFindCitiesByDistrict, jdbcQueryFindCitiesByCountryName;
 
     static {
         commonEntityMethod = new CommonEntityMethod();
     }
 
-    public CitiesEntity() {
+    private CitiesEntity() {
         super();
+        cities = new CopyOnWriteArraySet<>();
+        this.jdbcQueryFindCityWithNameAndCountry = getPropertiesValue("jdbc.query.findCityByNameAndCountry");
         this.jdbcQueryAllGetCities = getPropertiesValue("jdbc.query.getAllCities");
         this.jdbcQueryFindCityByName = getPropertiesValue("jdbc.query.findCityByName");
         this.jdbcInsertIntoQuery = getPropertiesValue("jdbc.add.addCity");
         this.jdbcQueryFindCitiesByDistrict = getPropertiesValue("jdbc.query.findCityByDistrict");
-        this.jdbcQueryFindCitiesByCountryCode = getPropertiesValue("jdbc.query.findCityByCountry");
+        this.jdbcQueryFindCitiesByCountryName = getPropertiesValue("jdbc.query.findCityByCountry");
         this.jdbcUpdateCityPopulation = getPropertiesValue("jdbc.update.cityPopulationNo");
         this.jdbcUpdateCityName = getPropertiesValue("jdbc.update.updateCityName");
+    }
+
+    public static CitiesEntity getInstance() {
+        if (instance == null) {
+            instance = new CitiesEntity();
+        }
+        return instance;
     }
 
 
@@ -55,116 +67,183 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     }
 
 
-    public CitiesEntity(String countryCode, String cityName, String district, int population) {
+    private CitiesEntity(int cityId, String countryName, String cityName, String district, int population) {
+        this.cityId = cityId;
         this.cityName = cityName;
-        this.countryCode = countryCode;
+        this.countryName = countryName;
         this.district = district;
-        this.population = new AtomicInteger(population);
+        this.population = population;
     }
 
     public static String QUERY_HANDLE = null;
 
-    @Override
-    public Set<CitiesEntity> call() {
+    private Set<CitiesEntity> getAllCities() {
         try {
-            PreparedStatement ps;
-            ResultSet set;
-            switch (QUERY_HANDLE) {
-                case "GET_ALL_CITIES_DATA" -> {
-                    System.out.println("Ove");
-                    ps = commonEntityMethod.databaseConfig(jdbcQueryAllGetCities);
-                    set = ps.executeQuery();
-                    return addDataFromDBToList(set);
-                }
-                case "FIND_CITY_INFO_BY_NAME" -> {
-                    System.out.println("3");
-                    System.out.println(this.jdbcQueryFindCityByName);
-                    System.out.println(getPropertiesValue("cityName"));
-                    ps = commonEntityMethod.databaseConfig(jdbcQueryFindCityByName);
-                    ps.setString(1, getPropertiesValue("cityName"));
-                    return addDataFromDBToList(ps.executeQuery());
-                }
-                case "ADD_CITY" -> {
-                    ps = commonEntityMethod.databaseConfig(jdbcInsertIntoQuery);
-                    ps.setString(1, getPropertiesValue("countryCode"));
-                    ps.setString(2, getPropertiesValue("cityName"));
-                    ps.setString(3, getPropertiesValue("district"));
-                    ps.setLong(4, Long.parseLong(getPropertiesValue("population")));
-                    ps.executeUpdate();
-
-                    cities.add(new CitiesEntity(getPropertiesValue("countryCode"), getPropertiesValue("cityName"), getPropertiesValue("district"), Integer.parseInt(getPropertiesValue("district"))));
-                    return cities;
-                }
-                case "GET_CITIES_BY_DISTRICT" -> {
-                    LOG.info("Executing cities entity for get cities by district");
-                    ps = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByDistrict);
-                    ps.setString(1, getPropertiesValue("districtName"));
-                    return addDataFromDBToList(ps.executeQuery());
-                }
-                case "FIND_CITIES_BY_COUNTRY" -> {
-                    try {
-                        System.out.println("Three");
-                        ps = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByCountryCode);
-                        //  ps.setString(1, this.getCountryCode());
-                        System.out.println(addDataFromDBToList(ps.executeQuery()));
-                        return addDataFromDBToList(ps.executeQuery());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-
-                }
-                case "UPDATE_CITY_POPULATION" -> {
-                    ps = commonEntityMethod.databaseConfig(this.jdbcUpdateCityPopulation);
-                    ps.setLong(1, Long.parseLong(getPropertiesValue("population")));
-                    ps.setString(2, "citName");
-                    ps.executeUpdate();
-
-                    cities.add(new CitiesEntity(getPropertiesValue("countryCode"), getPropertiesValue("cityName"), getPropertiesValue("district"), Integer.parseInt(getPropertiesValue("district"))));
-                    return cities;
-                }
-                case "UPDATE_CITY_NAME" -> {
-                    ps = commonEntityMethod.databaseConfig(this.jdbcUpdateCityName);
-                    ps.setString(1, "newCityName");
-                    ps.setString(2, getPropertiesValue("cityName"));
-                    ps.executeUpdate();
-
-                    cities.add(new CitiesEntity(getPropertiesValue("countryCode"), getPropertiesValue("cityName"), getPropertiesValue("district"), Integer.parseInt(getPropertiesValue("district"))));
-                    return cities;
-                }
-            }
-        } catch (SQLException | ExecutionException | InterruptedException | TimeoutException e) {
-            e.printStackTrace();
+            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(jdbcQueryAllGetCities);
+            return addDataFromDBToList(true);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
-//    private String getCountryCode() {
-//        Set<CountriesEntity> dataStructure = this.entity.getCountryCodeFromDB();
-//
-//        if (dataStructure.size() == 1) {
-//            for (CountriesEntity entity : dataStructure) {
-//                return entity.getCountryCode();
-//            }
-//
-//            return null;
-//        } else {
-//            throw new IllegalStateException("The data structure contains more than 2 values or zero check : " + dataStructure);
-//        }
-//    }
-
-    private Set<CitiesEntity> addDataFromDBToList(ResultSet set) throws SQLException {
-        while (set.next()) {
-            cities.add(new CitiesEntity(set.getString(1), set.getString(2), set.getString(4), set.getInt(5)));
+    private Set<CitiesEntity> getCitiesByDistrict() {
+        try {
+            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByDistrict);
+            preparedStatementFoRResultSet.setString(1, getPropertiesValue("districtName"));
+            return addDataFromDBToList(true);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        set.close();
+    }
+
+    private Set<CitiesEntity> getCitiesByNameAndCountry() {
+        try {
+
+
+            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCityWithNameAndCountry);
+
+            preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
+            LOG.info(getPropertiesValue("cityName"));
+            preparedStatementFoRResultSet.setString(2, getPropertiesValue("countryName1"));
+            LOG.info(getPropertiesValue("countryName1"));
+            return addDataFromDBToList(true);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<CitiesEntity> getCityByName() {
+        try {
+            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(jdbcQueryFindCityByName);
+            if (this.changeToNewCityName) {
+                preparedStatementFoRResultSet.setString(1, getPropertiesValue("newCityName"));
+                LOG.info("TRUE");
+                changeToNewCityName = false;
+            } else {
+                LOG.info("FALSE");
+                preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
+            }
+            return addDataFromDBToList(true);
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<CitiesEntity> getCityByCountry() {
+        try {
+
+            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByCountryName);
+            preparedStatementFoRResultSet.setString(1, commonEntityMethod.getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName")));
+            return addDataFromDBToList(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Set<CitiesEntity> insertCity() {
+        try {
+
+            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(jdbcInsertIntoQuery);
+
+            preparedStatementFoRExecuteUpdate.setString(2, commonEntityMethod.getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
+            preparedStatementFoRExecuteUpdate.setString(1, PropertiesUtilManager.getPropertiesValue("cityName"));
+            preparedStatementFoRExecuteUpdate.setString(3, PropertiesUtilManager.getPropertiesValue("districtName"));
+            preparedStatementFoRExecuteUpdate.setInt(4, 0);
+            Set<CitiesEntity> set = getCitiesByNameAndCountry();
+            LOG.info("testing" + set);
+
+            if (set.size() == 0) {
+                preparedStatementFoRExecuteUpdate.executeUpdate();
+                cities = getCitiesByNameAndCountry();
+                LOG.info("Data inserted");
+                return cities;
+            } else {
+                cities = new CopyOnWriteArraySet<>();
+                return cities;
+            }
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<CitiesEntity> updateCitiesPopulation() {
+        try {
+
+            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(this.jdbcUpdateCityPopulation);
+            preparedStatementFoRExecuteUpdate.setInt(1, Integer.parseInt(getPropertiesValue("population")));
+            preparedStatementFoRExecuteUpdate.setString(2, "cityName");
+
+            return addDataFromDBToList(false);
+
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private PreparedStatement preparedStatementFoRResultSet;
+    private PreparedStatement preparedStatementFoRExecuteUpdate;
+    private boolean changeToNewCityName = false;
+
+    private Set<CitiesEntity> updateCityName() {
+        try {
+
+            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(this.jdbcUpdateCityName);
+            preparedStatementFoRExecuteUpdate.setString(1, "newCityName");
+            preparedStatementFoRExecuteUpdate.setString(2, getPropertiesValue("cityName"));
+            Set<CitiesEntity> set = getCityByName();
+            LOG.info("" + set.size());
+            if (set.size() != 0) {
+                preparedStatementFoRExecuteUpdate.executeUpdate();
+                changeToNewCityName = true;
+                var local = getCityByName();
+                LOG.info("" + local);
+                return local;
+            } else {
+                cities = new CopyOnWriteArraySet<>();
+                return cities;
+            }
+        } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public Set<CitiesEntity> call() {
+
+        return switch (QUERY_HANDLE) {
+            case "GET_ALL_CITIES_DATA" -> getAllCities();
+            case "FIND_CITY_INFO_BY_NAME" -> getCityByName();
+            case "ADD_CITY" -> insertCity();
+            case "GET_CITIES_BY_DISTRICT" -> getCitiesByDistrict();
+            case "FIND_CITIES_BY_COUNTRY" -> getCityByCountry();
+            case "UPDATE_CITY_POPULATION" -> updateCitiesPopulation();
+            case "UPDATE_CITY_NAME" -> updateCityName();
+            default -> null;
+        };
+
+    }
+
+
+    private boolean isInsertQuery;
+
+    private Set<CitiesEntity> addDataFromDBToList(boolean isResultSet) throws SQLException {
+        cities = new ConcurrentSkipListSet<>();
+        if (isResultSet) {
+            ResultSet set = preparedStatementFoRResultSet.executeQuery();
+
+            while (set.next()) {
+                cities.add(new CitiesEntity(set.getInt(1), set.getString(2), set.getString(3), set.getString(4), set.getInt(5)));
+            }
+            set.close();
+        }
         LOG.info("data from database to data structure cities data : " + cities);
         return cities;
     }
 
     @Override
     public String toString() {
-        return "country code:" + this.countryCode + ", city name:" + cityName + ", city district: " + district + ", population:" + population.get();
-
+        return "ID :" + cityId + "country code:" + this.countryName + ", city name:" + cityName + ", city district: " + district + ", population:" + population;
     }
 }
