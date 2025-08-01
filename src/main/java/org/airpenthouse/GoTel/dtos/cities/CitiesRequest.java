@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class CitiesDto {
-    private String cityName, district;
+public class CitiesRequest {
+    private String cityName, district, countryName;
 
 }
