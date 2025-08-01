@@ -1,46 +1,74 @@
 package org.airpenthouse.GoTel.controllers;
 
-import org.airpenthouse.GoTel.entities.country.CountriesEntity;
+import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.services.country.CountriesService;
-import org.airpenthouse.GoTel.util.ExecutionHandler;
-import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
+import org.airpenthouse.GoTel.util.mappers.CountriesMapperImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
 import java.util.Set;
 
-@RestController
+import static org.airpenthouse.GoTel.util.executors.CountriesExecutors.getInstances;
+
 @RequestMapping("/api/countries")
-public class CountriesController extends ExecutionHandler {
+@RestController
+public class CountriesController {
+    private final CountriesMapper mapper;
+
+    public CountriesController() {
+        mapper = new CountriesMapperImpl();
+        getInstances().build(mapper);
+    }
 
     @GetMapping("/getAllCountries")
-    public ResponseEntity<Set<CountriesEntity>> getCountriesEntitySet() throws Exception {
+    public ResponseEntity<Set<CountriesRequest>> getCountriesEntitySet() {
         CountriesService.SERVICE_HANDLER = "FIND_ALL_COUNTRIES";
-        return ResponseEntity.ok(Collections.unmodifiableSet(executeCountriesService()));
+
+        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
 
     @GetMapping("/getCountryByName/{countryName}")
-    public Set<CountriesEntity> getCountryByName(@PathVariable String countryName) {
+    public ResponseEntity<Set<CountriesRequest>> getCountryByName(@PathVariable String countryName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_NAME";
         PropertiesUtilManager.setProperties("countryName", countryName);
-        return executeCountriesService();
+        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
 
     @GetMapping("/getCountryByContinent/{continentName}")
-    public Set<CountriesEntity> getCountryByContinent(@PathVariable String continentName) {
+    public ResponseEntity<Set<CountriesRequest>> getCountryByContinent(@PathVariable String continentName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_CONTINENT";
         PropertiesUtilManager.setProperties("continentName", continentName);
-        return executeCountriesService();
+        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
 
     @GetMapping("/getCountryByRegion/{regionName}")
-    public Set<CountriesEntity> getCountryByRegion(@PathVariable String regionName) {
+    public ResponseEntity<Set<CountriesRequest>> getCountryByRegion(@PathVariable String regionName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_REGION";
         PropertiesUtilManager.setProperties("regionName", regionName);
-        return executeCountriesService();
+        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
+
 
 
 }
