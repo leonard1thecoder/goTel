@@ -1,13 +1,21 @@
 package org.airpenthouse.GoTel.util.mappers;
 
-import org.airpenthouse.GoTel.dtos.cities.CitiesDto;
-import org.airpenthouse.GoTel.dtos.cities.CreateNewCityDto;
+import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
+import org.airpenthouse.GoTel.dtos.cities.CreateNewCityRequest;
+import org.airpenthouse.GoTel.dtos.cities.UpdateCityNameRequest;
+import org.airpenthouse.GoTel.dtos.cities.UpdateCityPopulation;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
+@Component
 @Mapper(componentModel = "spring")
 public interface CitiesMapper {
-    CitiesDto toCitiesDto(CitiesEntity entity);
+    CitiesRequest toCitiesDto(CitiesEntity entity);
 
-    CitiesEntity toCitiesEntity(CreateNewCityDto dto);
+    CitiesEntity toCitiesEntity(CreateNewCityRequest request);
+
+    CitiesEntity toCitiesEntity(UpdateCityNameRequest request);
+
+    CitiesEntity toCitiesEntity(UpdateCityPopulation request);
 }
