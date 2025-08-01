@@ -1,89 +1,85 @@
 package org.airpenthouse.GoTel.services.city;
 
-
-import org.airpenthouse.GoTel.util.ExecutionHandler;
+import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
+import static org.airpenthouse.GoTel.util.executors.CitiesExecutors.getInstances;
 
 @Service
-public class CitiesService extends ExecutionHandler implements Callable<Set<CitiesEntity>> {
+public class CitiesService implements Callable<Set<CitiesRequest>> {
+    private static CitiesService instance;
 
-    //Managing data to displayed
-    CitiesMapper citiesMapper;
+    public final CitiesMapper citiesMapper;
 
     public static String SERVICE_TRIGGER = null;
 
-    public Set<CitiesEntity> getAllCities() {
+    private CitiesService() {
+        citiesMapper = getInstances().getMapper();
+    }
+
+    public static CitiesService getInstance() {
+        if (instance == null) {
+            instance = new CitiesService();
+        }
+        return instance;
+    }
+
+    public Set<CitiesRequest> getAllCities() {
         CitiesEntity.QUERY_HANDLE = "GET_ALL_CITIES_DATA";
-        return new HashSet<>(initializeCitiesEntity());
+
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).peek(System.out::println).collect(Collectors.toSet());
     }
 
-    public Set<CitiesEntity> findCityByName() {
+    public Set<CitiesRequest> findCityByName() {
         CitiesEntity.QUERY_HANDLE = "FIND_CITY_INFO_BY_NAME";
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
 
     }
 
-    public Set<CitiesEntity> insertCities() {
+    public Set<CitiesRequest> insertCities() {
         CitiesEntity.QUERY_HANDLE = "ADD_CITY";
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 
-    public Set<CitiesEntity> findCitiesByCountries() {
+    public Set<CitiesRequest> findCitiesByCountries() {
         CitiesEntity.QUERY_HANDLE = "FIND_CITIES_BY_COUNTRY";
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 
-    public Set<CitiesEntity> findCitiesByDistrict() {
+    public Set<CitiesRequest> findCitiesByDistrict() {
         LOG.info("Executing find cities by district service");
         CitiesEntity.QUERY_HANDLE = "GET_CITIES_BY_DISTRICT";
         LOG.info(" data from the data structure for service : ");
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 
-    public Set<CitiesEntity> updateCiteName() {
+    public Set<CitiesRequest> updateCiteName() {
         CitiesEntity.QUERY_HANDLE = "UPDATE_CITY_NAME";
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 
-    public Set<CitiesEntity> updateCitePopulation() {
+    public Set<CitiesRequest> updateCitePopulation() {
         CitiesEntity.QUERY_HANDLE = "UPDATE_CITY_NAME";
-        return new HashSet<>(initializeCitiesEntity());
+        return getInstances().initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 
     @Override
-    public Set<CitiesEntity> call() {
-        switch (SERVICE_TRIGGER) {
-            case "GET_ALL_CITIES_DATA" -> {
-                return this.getAllCities();
-            }
-            case "ADD_CITY" -> {
-                return this.insertCities();
-            }
-            case "FIND_CITY_INFO_BY_NAME" -> {
-                return this.findCityByName();
-            }
-            case "FIND_CITIES_BY_COUNTRY" -> {
-                return this.findCitiesByCountries();
-            }
-            case "GET_CITIES_BY_DISTRICT" -> {
-                return this.findCitiesByDistrict();
-            }
-            case "UPDATE_CITY_POPULATION" -> {
-                return this.updateCitePopulation();
-            }
-            case "UPDATE_CITY_NAME" -> {
-                return this.updateCiteName();
-            }
-            default -> {
-                return null;
-            }
-        }
+    public Set<CitiesRequest> call() {
+        return switch (SERVICE_TRIGGER) {
+            case "GET_ALL_CITIES_DATA" -> this.getAllCities();
+            case "ADD_CITY" -> this.insertCities();
+            case "FIND_CITY_INFO_BY_NAME" -> this.findCityByName();
+            case "FIND_CITIES_BY_COUNTRY" -> this.findCitiesByCountries();
+            case "GET_CITIES_BY_DISTRICT" -> this.findCitiesByDistrict();
+            case "UPDATE_CITY_POPULATION" -> this.updateCitePopulation();
+            case "UPDATE_CITY_NAME" -> this.updateCiteName();
+            default -> null;
+        };
     }
 }

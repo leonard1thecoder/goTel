@@ -1,44 +1,57 @@
 package org.airpenthouse.GoTel.services.country;
 
-import org.airpenthouse.GoTel.util.ExecutionHandler;
-import org.airpenthouse.GoTel.entities.country.CountriesEntity;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static org.airpenthouse.GoTel.entities.country.CountriesEntity.ENTITY_TRIGGER;
+import static org.airpenthouse.GoTel.util.executors.CountriesExecutors.getInstances;
 
-@Service
-public final class CountriesService extends ExecutionHandler implements Callable<Set<CountriesEntity>> {
-    private CountriesMapper mapper;
+
+public final class CountriesService implements Callable<Set<CountriesRequest>> {
+
+    private static CountriesService instance;
     public static String SERVICE_HANDLER;
+    private final CountriesMapper mapper;
 
+    private CountriesService() {
+        mapper = getInstances().getMapper();
+    }
 
-    private Set<CountriesEntity> getAllCountries() {
+    public static CountriesService getInstance() {
+        if (instance == null) {
+            instance = new CountriesService();
+        }
+        return instance;
+    }
+
+    private Set<CountriesRequest> getAllCountries() {
         ENTITY_TRIGGER = "FIND_ALL_COUNTRIES";
-        return Collections.unmodifiableSet(super.executeCountriesEntity());
+        return getInstances().initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
-    private Set<CountriesEntity> getCountryByName() {
+    private Set<CountriesRequest> getCountryByName() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_NAME";
-        return Collections.unmodifiableSet(super.executeCountriesEntity());
+        return getInstances().initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
-    private Set<CountriesEntity> getCountryByContinent() {
+    private Set<CountriesRequest> getCountryByContinent() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_CONTINENT";
-        return Collections.unmodifiableSet(super.executeCountriesEntity());
+        return getInstances().initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
+
     }
 
-    private Set<CountriesEntity> getCountryByRegion() {
+    private Set<CountriesRequest> getCountryByRegion() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_REGION";
-        return Collections.unmodifiableSet(super.executeCountriesEntity());
+        return getInstances().initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
+
     }
 
     @Override
-    public Set<CountriesEntity> call() throws Exception {
+    public Set<CountriesRequest> call() {
 
         return switch (SERVICE_HANDLER) {
             case "FIND_ALL_COUNTRIES" -> getAllCountries();
@@ -47,6 +60,7 @@ public final class CountriesService extends ExecutionHandler implements Callable
             case "FIND_COUNTRY_BY_REGION" -> getCountryByRegion();
             default -> null;
         };
+
     }
 }
 
