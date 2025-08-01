@@ -1,89 +1,142 @@
 package org.airpenthouse.GoTel.controllers;
 
-import org.airpenthouse.GoTel.entities.city.CitiesEntity;
+import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
+import org.airpenthouse.GoTel.dtos.cities.CreateNewCityRequest;
+import org.airpenthouse.GoTel.dtos.cities.UpdateCityNameRequest;
+import org.airpenthouse.GoTel.dtos.cities.UpdateCityPopulation;
 import org.airpenthouse.GoTel.services.city.CitiesService;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
-import org.airpenthouse.GoTel.util.ExecutionHandler;
+import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
+import org.airpenthouse.GoTel.util.mappers.CitiesMapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.web.util.UriComponentsBuilder;
 
-/*
-For Updating and inserting Api's, I'm using @GetMapping to test entity data processing
- */
+import java.util.Set;
+
+import static org.airpenthouse.GoTel.util.executors.CitiesExecutors.getInstances;
+
 @RestController
 @RequestMapping("/api/cities")
-public class CitiesController extends ExecutionHandler {
+public class CitiesController {
+
+    private final CitiesMapper citiesMapper = new CitiesMapperImpl();
+
+    public CitiesController() {
+        getInstances().setMapper(citiesMapper);
+    }
+
+    private Set<CitiesRequest> entities;
 
     @GetMapping("/findAllCites")
-    public ResponseEntity<Set<CitiesEntity>> getAllCities() {
+    public ResponseEntity<Set<CitiesRequest>> getAllCities() {
+
+        ResponseEntity<Set<CitiesRequest>> result;
         CitiesService.SERVICE_TRIGGER = "GET_ALL_CITIES_DATA";
-        Set<CitiesEntity> setOfCitiesEntity = new HashSet<>(initializeCitiesService());
-        if (setOfCitiesEntity.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }else{
-            return ResponseEntity.ok(setOfCitiesEntity);
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty()) {
+            result = ResponseEntity.notFound().build();
+        } else {
+            result = ResponseEntity.ok(entities);
         }
+        return result;
     }
 
     @GetMapping("/findCityByName/{cityName}")
-    public ResponseEntity<Set<CitiesEntity>> findCityByName(@PathVariable String cityName) {
+    public ResponseEntity<Set<CitiesRequest>> findCityByName(@PathVariable String cityName) {
         CitiesService.SERVICE_TRIGGER = "FIND_CITY_INFO_BY_NAME";
 
 
         PropertiesUtilManager.setProperties("cityName", cityName);
         System.out.println(PropertiesUtilManager.getPropertiesValue("cityName"));
-        Set<CitiesEntity> setOfCitiesEntity = new HashSet<>(initializeCitiesService());
-        if (setOfCitiesEntity.isEmpty()){
+        entities = getInstances().initializeCitiesService();
+        if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
-        }else{
-            return ResponseEntity.ok(setOfCitiesEntity);
-        }    }
+        } else {
+            return ResponseEntity.ok(entities);
+        }
+    }
 
-    @GetMapping("/insertCity")
-    public Map<String, CitiesEntity> insertCities(@RequestParam String countryName,@RequestParam String cityName,@RequestParam String districtName,@RequestParam long population) {
+    @PostMapping("/insertCity")
+    public ResponseEntity<Set<CitiesRequest>> insertCities(@RequestBody CreateNewCityRequest request, UriComponentsBuilder uriBuilder) {
         CitiesService.SERVICE_TRIGGER = "ADD_CITY";
-        PropertiesUtilManager.setProperties("countryName",countryName);
-        PropertiesUtilManager.setProperties("cityName",cityName);
-        PropertiesUtilManager.setProperties("districtName",districtName);
-        PropertiesUtilManager.setProperties("population",String.valueOf(population));
-        return new HashSet<>(initializeCitiesService()).stream().collect(Collectors.toMap(CitiesEntity::getCityName, s -> s));
+
+        var cityRequest = citiesMapper.toCitiesEntity(request);
+        PropertiesUtilManager.setProperties("countryName1", cityRequest.getCountryName());
+        PropertiesUtilManager.setProperties("cityName", cityRequest.getCityName());
+        PropertiesUtilManager.setProperties("districtName", cityRequest.getDistrict());
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        } else {
+            // creating status 201
+            var uri = uriBuilder.path("/api/cities/findCityByName/{cityName}").buildAndExpand(cityRequest.getCityName()).toUri();
+            return ResponseEntity.created(uri).body(entities);
+        }
     }
 
-    @GetMapping("/findCitiesByCountryName")
-    public Map<String, CitiesEntity> findCitiesByCountries(@RequestParam String countryName) {
+    @GetMapping("/findByCountryName/{countryName}")
+    public ResponseEntity<Set<CitiesRequest>> findCitiesByCountries(@PathVariable String countryName) {
         CitiesService.SERVICE_TRIGGER = "FIND_CITIES_BY_COUNTRY";
-        System.out.println("One");
+        LOG.info(countryName);
         PropertiesUtilManager.setProperties("countryName", countryName);
-        return new HashSet<>(initializeCitiesService()).stream().collect(Collectors.toMap(CitiesEntity::getCityName, s -> s));
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
 
-    @GetMapping("/findCitiesByDistrict")
-    public Map<String, CitiesEntity> findCitiesByDistrict(@RequestParam String district) {
+    @GetMapping("/findCitiesByDistrict/{district}")
+    public ResponseEntity<Set<CitiesRequest>> findCitiesByDistrict(@PathVariable String district) {
+
         LOG.info("Executing the find cities by district API ");
         CitiesService.SERVICE_TRIGGER = "GET_CITIES_BY_DISTRICT";
         PropertiesUtilManager.setProperties("districtName", district);
         LOG.info("District searched is " + district);
-        return new HashSet<>(initializeCitiesService()).stream().collect(Collectors.toMap(CitiesEntity::getCityName, s -> s));
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(entities);
+        }
     }
 
-    @GetMapping("/updateCityName/{cityName}")
-    public Map<String, CitiesEntity> updateCiteName(@RequestParam String newCityName, @PathVariable String cityName) {
+    @PutMapping("/updateCityName")
+    public ResponseEntity<Void> updateCityName(@RequestBody UpdateCityNameRequest request) {
         CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
-        PropertiesUtilManager.setProperties("cityName", cityName);
-        PropertiesUtilManager.setProperties("newCityName", newCityName);
-        return new HashSet<>(initializeCitiesService()).stream().collect(Collectors.toMap(CitiesEntity::getCityName, s -> s));
+
+        var dto = citiesMapper.toCitiesEntity(request);
+        PropertiesUtilManager.setProperties("cityName", dto.getCityName());
+        PropertiesUtilManager.setProperties("newCityName", dto.getNewLanguageName());
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty())
+            return ResponseEntity.badRequest().build();
+        else
+            return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/updateCityPopulation/{CityName}")
-    public Map<String, CitiesEntity> updateCitePopulation(@PathVariable String cityName, @RequestParam long newUpdatePopulationNo) {
-        CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_POPULATION";
-        PropertiesUtilManager.setProperties("cityName", cityName);
-        PropertiesUtilManager.setProperties("newUpdatePopulationNo", String.valueOf(newUpdatePopulationNo));
-        return new HashSet<>(initializeCitiesService()).stream().collect(Collectors.toMap(CitiesEntity::getCityName, s -> s));
+
+    @PutMapping("/updateCityPopulation")
+    public ResponseEntity<Void> updateCitiesPopulation(@RequestBody UpdateCityPopulation request) {
+        CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
+        var dto = citiesMapper.toCitiesEntity(request);
+        PropertiesUtilManager.setProperties("cityName", dto.getCityName());
+        PropertiesUtilManager.setProperties("newCityName", String.valueOf(dto.getPopulation()));
+        entities = getInstances().initializeCitiesService();
+
+        if (entities.isEmpty())
+            return ResponseEntity.badRequest().build();
+        else
+            return ResponseEntity.noContent().build();
     }
+
 }
