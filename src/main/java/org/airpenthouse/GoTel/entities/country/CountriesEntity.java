@@ -7,13 +7,17 @@ import java.sql.SQLException;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
+import org.springframework.stereotype.Component;
+
 import java.util.Set;
 
+@Component
+
 @AllArgsConstructor
-public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Comparable<CountriesEntity> {
+public final class CountriesEntity extends CountriesExecutors implements Callable<Set<CountriesEntity>>, Comparable<CountriesEntity> {
 
     private static CountriesEntity instance;
     @Getter
@@ -37,11 +41,6 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         jdbcQueryFindCountryByRegion = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByRegion");
     }
 
-
-    static {
-        commonEntityMethod = new CommonEntityMethod();
-    }
-
     public static CountriesEntity getInstance() {
         if (instance == null) {
             instance = new CountriesEntity();
@@ -53,7 +52,7 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         PreparedStatement ps;
         try {
 
-            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByName);
+            ps = databaseConfig(jdbcQueryFindCountryByName);
             LOG.info(jdbcQueryFindCountryByName);
             LOG.info("OK#######1");
             ps.setString(1, PropertiesUtilManager.getPropertiesValue("countryName"));
@@ -71,7 +70,7 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         PreparedStatement ps;
         try {
 
-            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByContinent);
+            ps = databaseConfig(jdbcQueryFindCountryByContinent);
             ps.setString(1, PropertiesUtilManager.getPropertiesValue("continentName"));
             ResultSet set = ps.executeQuery();
             return addDataFromDbToSet(set);
@@ -84,7 +83,7 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
         PreparedStatement ps;
         try {
 
-            ps = commonEntityMethod.databaseConfig(jdbcQueryFindCountryByRegion);
+            ps = databaseConfig(jdbcQueryFindCountryByRegion);
             ps.setString(1, PropertiesUtilManager.getPropertiesValue("regionName"));
             ResultSet set = ps.executeQuery();
             return addDataFromDbToSet(set);
@@ -92,7 +91,7 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
             throw new RuntimeException(e);
         }
     }
-    private static final CommonEntityMethod commonEntityMethod;
+
 
     @Override
     public int compareTo(CountriesEntity obj) {
@@ -100,13 +99,11 @@ public final class CountriesEntity implements Callable<Set<CountriesEntity>>, Co
     }
 
 
-
-
     private Set<CountriesEntity> getAllCountries() {
 
         PreparedStatement ps;
         try {
-            ps = commonEntityMethod.databaseConfig(jdbcQueryFindAllCountries);
+            ps = databaseConfig(jdbcQueryFindAllCountries);
             ResultSet set = ps.executeQuery();
             LOG.info("OK#######**********");
             return addDataFromDbToSet(set);

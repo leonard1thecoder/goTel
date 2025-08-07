@@ -1,25 +1,27 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.services.city.CitiesService;
+import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
-public class CitiesExecutors {
+@Component
+public class CitiesExecutors extends CountApiUsers {
     private static CitiesExecutors instance;
     private final ExecutorService executeCities;
+    @Autowired
     @Getter
-    @Setter
     private CitiesMapper mapper;
 
-    private CitiesExecutors() {
-
+    protected CitiesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
         executeCities = Executors.newFixedThreadPool(noProcesses);
     }
@@ -42,7 +44,9 @@ public class CitiesExecutors {
 
     private Set<CitiesEntity> executeCitiesEntity() {
         try {
-            return this.impCitiesEntityExecution();
+            var set = this.impCitiesEntityExecution();
+            updateWorldCitiesCount();
+            return set;
         } catch (Exception e) {
             e.printStackTrace();
         }

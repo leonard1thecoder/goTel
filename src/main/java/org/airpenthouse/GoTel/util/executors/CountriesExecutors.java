@@ -1,37 +1,36 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.entities.country.CountriesEntity;
 import org.airpenthouse.GoTel.services.country.CountriesService;
+import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
-import static org.airpenthouse.GoTel.entities.country.CountriesEntity.getInstance;
-
-public class CountriesExecutors {
-
-    private static final CountriesExecutors instance = new CountriesExecutors();
+@Component
+public class CountriesExecutors extends CountApiUsers {
     private final ExecutorService executeCities;
     @Getter
+    @Autowired
     private CountriesMapper mapper;
 
-    private CountriesExecutors() {
+    protected CountriesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
         executeCities = Executors.newFixedThreadPool(noProcesses);
     }
 
-    public static CountriesExecutors getInstances() {
-        return instance;
-    }
 
     private Set<CountriesEntity> executeCountriesEntity() {
         try {
-            return this.implCountriesEntityExecution();
+            var set = this.implCountriesEntityExecution();
+            super.updateWorldCountriesCount();
+            return set;
         } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
             throw new RuntimeException("Error occurred :" + e.getMessage());
         } catch (Exception e) {
@@ -59,7 +58,7 @@ public class CountriesExecutors {
 
     private Set<CountriesEntity> implCountriesEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesEntity>> futureCollection;
-        futureCollection = executeCities.submit(getInstance());
+        futureCollection = executeCities.submit(CountriesEntity.getInstance());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
@@ -69,7 +68,5 @@ public class CountriesExecutors {
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
-    public void build(CountriesMapper mapper) {
-        this.mapper = mapper;
-    }
+
 }

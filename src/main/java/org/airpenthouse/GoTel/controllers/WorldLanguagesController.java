@@ -9,32 +9,28 @@ import org.airpenthouse.GoTel.services.language.WorldLanguagesService;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.mappers.LanguageMapper;
-import org.airpenthouse.GoTel.util.mappers.LanguageMapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.util.Set;
-
-import static org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors.getInstances;
 
 @RestController
 @RequestMapping("/api/worldLanguages")
-public class WorldLanguagesController {
+public class WorldLanguagesController extends WorldLanguagesService {
     @Autowired
-    public LanguageMapper mapper = new LanguageMapperImpl();
+    public LanguageMapper mapper;
     private Set<LanguageRequest> entities;
 
     @Autowired
     public WorldLanguagesController() {
-        getInstances().build(mapper);
+        mapper = getLanguageMapper();
     }
 
     @GetMapping("/findAllLanguages")
     public ResponseEntity<Set<LanguageRequest>> getAllLanguages() {
         WorldLanguagesService.SERVICE_HANDLER = "FIND_ALL_LANGUAGES";
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -46,7 +42,7 @@ public class WorldLanguagesController {
     public ResponseEntity<Set<LanguageRequest>> getLanguageByName(@PathVariable String languageName) {
         WorldLanguagesService.SERVICE_HANDLER = "FIND_LANGUAGE_BY_NAME";
         PropertiesUtilManager.setProperties("languageName", languageName);
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -58,7 +54,7 @@ public class WorldLanguagesController {
     public ResponseEntity<Set<LanguageRequest>> getLanguageByCountry(@PathVariable String countryName) {
         WorldLanguagesService.SERVICE_HANDLER = "FIND_LANGUAGES_BY_COUNTRY";
         PropertiesUtilManager.setProperties("countryName1", countryName);
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -74,7 +70,7 @@ public class WorldLanguagesController {
         LOG.info(dto.getLanguageName() + " " + dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("newLanguageName", dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
 
         if (entities == null)
             return ResponseEntity.badRequest().build();
@@ -90,7 +86,7 @@ public class WorldLanguagesController {
         var dto = mapper.toWorldEntity(request);
         PropertiesUtilManager.setProperties("newWorldLanguageStatus", String.valueOf(dto.getLanguageStatus()));
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
 
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
@@ -108,12 +104,12 @@ public class WorldLanguagesController {
         LOG.info(entity.getCountryName());
         LOG.info(entity.getLanguageName());
         // creating status 201
-        entities = getInstances().initializeWorldLanguageService();
+        entities = initializeWorldLanguageService();
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
         else {
             var uri = uriBuilder.path("/api/worldLanguages/findLanguageByName/{languageName}").buildAndExpand(entity.getLanguageName()).toUri();
-            return ResponseEntity.created(uri).body(getInstances().initializeWorldLanguageService());
+            return ResponseEntity.created(uri).body(initializeWorldLanguageService());
         }
     }
 }

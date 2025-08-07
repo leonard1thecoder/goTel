@@ -8,34 +8,30 @@ import org.airpenthouse.GoTel.services.city.CitiesService;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
-import org.airpenthouse.GoTel.util.mappers.CitiesMapperImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.util.Set;
 
-import static org.airpenthouse.GoTel.util.executors.CitiesExecutors.getInstances;
 
 @RestController
 @RequestMapping("/api/cities")
-public class CitiesController {
+public class CitiesController extends CitiesService {
 
-    private final CitiesMapper citiesMapper = new CitiesMapperImpl();
+    private final CitiesMapper citiesMapper;
 
     public CitiesController() {
-        getInstances().setMapper(citiesMapper);
+        citiesMapper = getMapper();
     }
 
     private Set<CitiesRequest> entities;
 
     @GetMapping("/findAllCites")
-    public ResponseEntity<Set<CitiesRequest>> getAllCities() {
+    public ResponseEntity<Set<CitiesRequest>> getAllCitiesController() {
 
         ResponseEntity<Set<CitiesRequest>> result;
         CitiesService.SERVICE_TRIGGER = "GET_ALL_CITIES_DATA";
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty()) {
             result = ResponseEntity.notFound().build();
@@ -52,7 +48,7 @@ public class CitiesController {
 
         PropertiesUtilManager.setProperties("cityName", cityName);
         System.out.println(PropertiesUtilManager.getPropertiesValue("cityName"));
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -68,7 +64,7 @@ public class CitiesController {
         PropertiesUtilManager.setProperties("countryName1", cityRequest.getCountryName());
         PropertiesUtilManager.setProperties("cityName", cityRequest.getCityName());
         PropertiesUtilManager.setProperties("districtName", cityRequest.getDistrict());
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -84,7 +80,7 @@ public class CitiesController {
         CitiesService.SERVICE_TRIGGER = "FIND_CITIES_BY_COUNTRY";
         LOG.info(countryName);
         PropertiesUtilManager.setProperties("countryName", countryName);
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -100,7 +96,7 @@ public class CitiesController {
         CitiesService.SERVICE_TRIGGER = "GET_CITIES_BY_DISTRICT";
         PropertiesUtilManager.setProperties("districtName", district);
         LOG.info("District searched is " + district);
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -116,7 +112,7 @@ public class CitiesController {
         var dto = citiesMapper.toCitiesEntity(request);
         PropertiesUtilManager.setProperties("cityName", dto.getCityName());
         PropertiesUtilManager.setProperties("newCityName", dto.getNewLanguageName());
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
@@ -131,7 +127,7 @@ public class CitiesController {
         var dto = citiesMapper.toCitiesEntity(request);
         PropertiesUtilManager.setProperties("cityName", dto.getCityName());
         PropertiesUtilManager.setProperties("newCityName", String.valueOf(dto.getPopulation()));
-        entities = getInstances().initializeCitiesService();
+        entities = initializeCitiesService();
 
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
