@@ -3,24 +3,23 @@ package org.airpenthouse.GoTel.entities.city;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.CitiesExecutors;
+import org.springframework.stereotype.Component;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.*;
-
 import static org.airpenthouse.GoTel.util.PropertiesUtilManager.getPropertiesValue;
 
-
+@Component
 @AllArgsConstructor
-public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparable<CitiesEntity> {
+public class CitiesEntity extends CitiesExecutors implements Callable<Set<CitiesEntity>>, Comparable<CitiesEntity> {
 
     private static CitiesEntity instance;
-    private final static CommonEntityMethod commonEntityMethod;
     @Getter
     private int cityId;
     @Getter
@@ -36,9 +35,6 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     private Set<CitiesEntity> cities;
     private String jdbcQueryAllGetCities, jdbcQueryFindCityWithNameAndCountry, jdbcQueryFindCityByName, jdbcInsertIntoQuery, jdbcUpdateCityPopulation, jdbcUpdateCityName, jdbcQueryFindCitiesByDistrict, jdbcQueryFindCitiesByCountryName;
 
-    static {
-        commonEntityMethod = new CommonEntityMethod();
-    }
 
     private CitiesEntity() {
         super();
@@ -79,7 +75,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
 
     private Set<CitiesEntity> getAllCities() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(jdbcQueryAllGetCities);
+            preparedStatementFoRResultSet = databaseConfig(jdbcQueryAllGetCities);
             return addDataFromDBToList(true);
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -88,7 +84,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
 
     private Set<CitiesEntity> getCitiesByDistrict() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByDistrict);
+            preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCitiesByDistrict);
             preparedStatementFoRResultSet.setString(1, getPropertiesValue("districtName"));
             return addDataFromDBToList(true);
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
@@ -100,7 +96,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
         try {
 
 
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCityWithNameAndCountry);
+            preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCityWithNameAndCountry);
 
             preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
             LOG.info(getPropertiesValue("cityName"));
@@ -114,7 +110,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
 
     private Set<CitiesEntity> getCityByName() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(jdbcQueryFindCityByName);
+            preparedStatementFoRResultSet = databaseConfig(jdbcQueryFindCityByName);
             if (this.changeToNewCityName) {
                 preparedStatementFoRResultSet.setString(1, getPropertiesValue("newCityName"));
                 LOG.info("TRUE");
@@ -132,8 +128,8 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     private Set<CitiesEntity> getCityByCountry() {
         try {
 
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(this.jdbcQueryFindCitiesByCountryName);
-            preparedStatementFoRResultSet.setString(1, commonEntityMethod.getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName")));
+            preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCitiesByCountryName);
+            preparedStatementFoRResultSet.setString(1, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName")));
             return addDataFromDBToList(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,9 +140,9 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     private Set<CitiesEntity> insertCity() {
         try {
 
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(jdbcInsertIntoQuery);
+            preparedStatementFoRExecuteUpdate = databaseConfig(jdbcInsertIntoQuery);
 
-            preparedStatementFoRExecuteUpdate.setString(2, commonEntityMethod.getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
+            preparedStatementFoRExecuteUpdate.setString(2, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
             preparedStatementFoRExecuteUpdate.setString(1, PropertiesUtilManager.getPropertiesValue("cityName"));
             preparedStatementFoRExecuteUpdate.setString(3, PropertiesUtilManager.getPropertiesValue("districtName"));
             preparedStatementFoRExecuteUpdate.setInt(4, 0);
@@ -170,7 +166,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     private Set<CitiesEntity> updateCitiesPopulation() {
         try {
 
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(this.jdbcUpdateCityPopulation);
+            preparedStatementFoRExecuteUpdate = databaseConfig(this.jdbcUpdateCityPopulation);
             preparedStatementFoRExecuteUpdate.setInt(1, Integer.parseInt(getPropertiesValue("population")));
             preparedStatementFoRExecuteUpdate.setString(2, "cityName");
 
@@ -188,7 +184,7 @@ public final class CitiesEntity implements Callable<Set<CitiesEntity>>, Comparab
     private Set<CitiesEntity> updateCityName() {
         try {
 
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(this.jdbcUpdateCityName);
+            preparedStatementFoRExecuteUpdate = databaseConfig(this.jdbcUpdateCityName);
             preparedStatementFoRExecuteUpdate.setString(1, "newCityName");
             preparedStatementFoRExecuteUpdate.setString(2, getPropertiesValue("cityName"));
             Set<CitiesEntity> set = getCityByName();

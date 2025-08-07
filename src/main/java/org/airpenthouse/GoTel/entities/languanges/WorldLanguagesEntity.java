@@ -2,9 +2,10 @@ package org.airpenthouse.GoTel.entities.languanges;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors;
+import org.springframework.stereotype.Component;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.concurrent.*;
@@ -13,8 +14,9 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+@Component
 @AllArgsConstructor
-public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>, Comparable<WorldLanguagesEntity> {
+public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Callable<Set<WorldLanguagesEntity>>, Comparable<WorldLanguagesEntity> {
     @Getter
     private String countryName;
     @Getter
@@ -24,13 +26,9 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
     @Getter
     private String newLanguageName;
     private static WorldLanguagesEntity instance;
-    private static final CommonEntityMethod commonEntityMethod;
+
     private String queryFindAllLanguages, queryFindCityWithLanguageAndCountryName, queryFindLanguagesByCountryName, queryFindLanguageByName, updateLanguageName, updateLanguageStatus, insertLanguage;
     private Set<WorldLanguagesEntity> languages;
-
-    static {
-        commonEntityMethod = new CommonEntityMethod();
-    }
 
     public static WorldLanguagesEntity getInstance() {
         if (instance == null) {
@@ -65,7 +63,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
 
     private Set<WorldLanguagesEntity> getCityByLanguageAndCountry(String languageName, String countryName) {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(queryFindCityWithLanguageAndCountryName);
+            preparedStatementFoRResultSet = databaseConfig(queryFindCityWithLanguageAndCountryName);
             preparedStatementFoRResultSet.setString(1, languageName);
             preparedStatementFoRResultSet.setString(2, countryName);
             return addDatFromDBToList(true);
@@ -77,7 +75,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
 
     private Set<WorldLanguagesEntity> getAllLanguages() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(queryFindAllLanguages);
+            preparedStatementFoRResultSet = databaseConfig(queryFindAllLanguages);
 
             return addDatFromDBToList(true);
         } catch (SQLException | TimeoutException | InterruptedException | ExecutionException e) {
@@ -89,7 +87,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
     private boolean update;
     private Set<WorldLanguagesEntity> getLanguageByName() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(queryFindLanguageByName);
+            preparedStatementFoRResultSet = databaseConfig(queryFindLanguageByName);
 
             if (update) {
                 preparedStatementFoRResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("newLanguageName"));
@@ -106,7 +104,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
 
     private Set<WorldLanguagesEntity> getLanguageByCountry() {
         try {
-            preparedStatementFoRResultSet = commonEntityMethod.databaseConfig(queryFindLanguagesByCountryName);
+            preparedStatementFoRResultSet = databaseConfig(queryFindLanguagesByCountryName);
             preparedStatementFoRResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("countryName1"));
 
             return addDatFromDBToList(true);
@@ -119,7 +117,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
     private Set<WorldLanguagesEntity> updateWorldLanguage() {
         try {
             update = true;
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(updateLanguageName);
+            preparedStatementFoRExecuteUpdate = databaseConfig(updateLanguageName);
             preparedStatementFoRExecuteUpdate.setString(1, PropertiesUtilManager.getPropertiesValue("newLanguageName"));
             preparedStatementFoRExecuteUpdate.setString(2, PropertiesUtilManager.getPropertiesValue("languageName"));
             try {
@@ -150,7 +148,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
 
     private Set<WorldLanguagesEntity> updateWorldLanguageStatus() {
         try {
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(updateLanguageStatus);
+            preparedStatementFoRExecuteUpdate = databaseConfig(updateLanguageStatus);
             if (Boolean.parseBoolean(PropertiesUtilManager.getPropertiesValue("newWorldLanguageStatus"))) {
                 preparedStatementFoRExecuteUpdate.setString(1, "T");
             } else {
@@ -179,9 +177,9 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
 
     private Set<WorldLanguagesEntity> insertWorldLanguage() {
         try {
-            preparedStatementFoRExecuteUpdate = commonEntityMethod.databaseConfig(insertLanguage);
+            preparedStatementFoRExecuteUpdate = databaseConfig(insertLanguage);
             LOG.info(PropertiesUtilManager.getPropertiesValue("countryName1"));
-            preparedStatementFoRExecuteUpdate.setString(1, commonEntityMethod.getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
+            preparedStatementFoRExecuteUpdate.setString(1, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
             preparedStatementFoRExecuteUpdate.setString(2, PropertiesUtilManager.getPropertiesValue("languageName"));
             preparedStatementFoRExecuteUpdate.setString(3, "F");
             preparedStatementFoRExecuteUpdate.setDouble(4, 0.0);
@@ -222,7 +220,7 @@ public class WorldLanguagesEntity implements Callable<Set<WorldLanguagesEntity>>
         };
     }
 
-    public Set<WorldLanguagesEntity> addDatFromDBToList(boolean isResultSet) throws SQLException {
+    private Set<WorldLanguagesEntity> addDatFromDBToList(boolean isResultSet) throws SQLException {
         languages = new ConcurrentSkipListSet<>();
         if (isResultSet) {
             ResultSet set = preparedStatementFoRResultSet.executeQuery();
