@@ -6,8 +6,11 @@ import org.airpenthouse.GoTel.dtos.languages.UpdateLanguageRequest;
 import org.airpenthouse.GoTel.dtos.languages.UpdateLanguageStatus;
 import org.airpenthouse.GoTel.entities.languanges.WorldLanguagesEntity;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
+@Component
+
 public interface LanguageMapper {
     LanguageRequest mapper(WorldLanguagesEntity entity);
 
