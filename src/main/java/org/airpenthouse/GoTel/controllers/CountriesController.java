@@ -4,7 +4,7 @@ import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.services.country.CountriesService;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
-import org.airpenthouse.GoTel.util.mappers.CountriesMapperImpl;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Set;
@@ -13,12 +13,11 @@ import static org.airpenthouse.GoTel.util.executors.CountriesExecutors.getInstan
 
 @RequestMapping("/api/countries")
 @RestController
-public class CountriesController {
+public class CountriesController extends CountriesService {
     private final CountriesMapper mapper;
 
     public CountriesController() {
-        mapper = new CountriesMapperImpl();
-        getInstances().build(mapper);
+        mapper = getMapper();
     }
 
     @GetMapping("/getAllCountries")
