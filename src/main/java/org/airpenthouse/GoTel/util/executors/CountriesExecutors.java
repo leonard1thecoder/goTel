@@ -15,7 +15,6 @@ import java.util.concurrent.*;
 
 @Component
 public class CountriesExecutors extends CountApiUsers {
-    private static final CountriesExecutors instance = new CountriesExecutors();
     private final ExecutorService executeCities;
     @Getter
     @Autowired
@@ -26,9 +25,6 @@ public class CountriesExecutors extends CountApiUsers {
         executeCities = Executors.newFixedThreadPool(noProcesses);
     }
 
-    public static CountriesExecutors getInstances() {
-        return instance;
-    }
 
     private Set<CountriesEntity> executeCountriesEntity() {
         try {
@@ -72,7 +68,5 @@ public class CountriesExecutors extends CountApiUsers {
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
-    public void build(CountriesMapper mapper) {
-        this.mapper = mapper;
-    }
+
 }

@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
-import static org.airpenthouse.GoTel.util.executors.CountriesExecutors.getInstances;
-
 @RequestMapping("/api/countries")
 @RestController
 public class CountriesController extends CountriesService {
@@ -24,7 +22,7 @@ public class CountriesController extends CountriesService {
     public ResponseEntity<Set<CountriesRequest>> getCountriesEntitySet() {
         CountriesService.SERVICE_HANDLER = "FIND_ALL_COUNTRIES";
 
-        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        Set<CountriesRequest> entities = initializeCountriesService();
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -36,7 +34,7 @@ public class CountriesController extends CountriesService {
     public ResponseEntity<Set<CountriesRequest>> getCountryByName(@PathVariable String countryName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_NAME";
         PropertiesUtilManager.setProperties("countryName", countryName);
-        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        Set<CountriesRequest> entities = initializeCountriesService();
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -48,7 +46,7 @@ public class CountriesController extends CountriesService {
     public ResponseEntity<Set<CountriesRequest>> getCountryByContinent(@PathVariable String continentName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_CONTINENT";
         PropertiesUtilManager.setProperties("continentName", continentName);
-        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        Set<CountriesRequest> entities = initializeCountriesService();
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -60,7 +58,7 @@ public class CountriesController extends CountriesService {
     public ResponseEntity<Set<CountriesRequest>> getCountryByRegion(@PathVariable String regionName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_REGION";
         PropertiesUtilManager.setProperties("regionName", regionName);
-        Set<CountriesRequest> entities = getInstances().initializeCountriesService();
+        Set<CountriesRequest> entities = initializeCountriesService();
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {

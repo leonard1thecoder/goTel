@@ -7,10 +7,8 @@ import java.sql.SQLException;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.LOG;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
-import org.airpenthouse.GoTel.util.executors.CitiesExecutors;
 import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
 import org.springframework.stereotype.Component;
 

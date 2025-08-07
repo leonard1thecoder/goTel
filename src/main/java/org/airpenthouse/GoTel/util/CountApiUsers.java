@@ -129,15 +129,6 @@ public class CountApiUsers extends CommonEntityMethod {
         }
     }
 
-    private List<CountApiUsers> getCountiesByMembership() {
-        try {
-            st = databaseConfig(getCountsByMembershipQuery);
-            st.setString(1, PRIVILEGES.MEMBERSHIP.getMembershipName());
-            return addDataFromDBToList();
-        } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private List<CountApiUsers> addDataFromDBToList() throws SQLException {
         List<CountApiUsers> list = new CopyOnWriteArrayList<>();

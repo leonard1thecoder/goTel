@@ -15,8 +15,6 @@ import java.util.concurrent.*;
 
 @Component
 public class WorldLanguagesExecutors extends CountApiUsers {
-
-    private static final WorldLanguagesExecutors instance = new WorldLanguagesExecutors();
     private final ExecutorService executeCities;
     @Autowired
     @Getter
@@ -27,9 +25,6 @@ public class WorldLanguagesExecutors extends CountApiUsers {
         executeCities = Executors.newFixedThreadPool(noProcesses);
     }
 
-    public static WorldLanguagesExecutors getInstances() {
-        return instance;
-    }
 
     private Set<WorldLanguagesEntity> executeWorldLanguageEntity() {
         try {
@@ -75,7 +70,5 @@ public class WorldLanguagesExecutors extends CountApiUsers {
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
-    public void build(LanguageMapper mapper) {
-        this.languageMapper = mapper;
-    }
+
 }

@@ -9,9 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static org.airpenthouse.GoTel.util.executors.CitiesExecutors.getInstances;
-
 @Service
 public class CitiesService extends CitiesExecutors implements Callable<Set<CitiesRequest>> {
     private static CitiesService instance;

@@ -1,7 +1,6 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.services.city.CitiesService;
