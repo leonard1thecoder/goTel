@@ -1,5 +1,6 @@
 package org.airpenthouse.GoTel.dtos.languages;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Getter
 public class UpdateLanguageRequest {
 
-
+    @JsonProperty("_language_name")
     private String languageName;
-
+    @JsonProperty("_new_language_name")
     private String newLanguageName;
 }
