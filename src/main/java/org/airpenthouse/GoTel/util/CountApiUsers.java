@@ -1,10 +1,12 @@
 package org.airpenthouse.GoTel.util;
 
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,6 +22,8 @@ public class CountApiUsers extends CommonEntityMethod {
     private PreparedStatement st, updatePreparedStatement;
     private ExecutorService executorService;
     private Lock lock;
+    @Getter
+    private LocalDateTime modifiedDate;
 
     protected CountApiUsers() {
         super();
@@ -51,7 +55,7 @@ public class CountApiUsers extends CommonEntityMethod {
         try {
             lock.lock();
             updatePreparedStatement = databaseConfig(upgradeWorldLanguageCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(1, Privileges.MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
                 countWorldLanguagesUsers.set(list.get(0).countWorldLanguagesUsers.get());
@@ -69,7 +73,7 @@ public class CountApiUsers extends CommonEntityMethod {
         try {
             lock.lock();
             updatePreparedStatement = databaseConfig(upgradeWorldCitiesCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(1, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
                 countWorldLanguagesUsers.set(list.get(0).countWorldCitiesUsersUsers.get());
@@ -87,7 +91,7 @@ public class CountApiUsers extends CommonEntityMethod {
         try {
             lock.lock();
             updatePreparedStatement = databaseConfig(upgradeWorldCountriesCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(1, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
                 countWorldLanguagesUsers.set(list.get(0).countWorldCountriesUsers.get());
@@ -122,7 +126,7 @@ public class CountApiUsers extends CommonEntityMethod {
     private List<CountApiUsers> getCountiesByNoMembership() {
         try {
             st = databaseConfig(getCountsByMembershipQuery);
-            st.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            st.setString(1, Privileges.NO_MEMBERSHIP.getMembershipName());
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
@@ -139,7 +143,7 @@ public class CountApiUsers extends CommonEntityMethod {
         }
         set.close();
 
-        LOG.info("data from database to data structure cities data : " + list);
+        Log.info("data from database to data structure cities data : " + list);
         return list;
     }
 
