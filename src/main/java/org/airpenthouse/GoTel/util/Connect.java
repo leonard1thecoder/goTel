@@ -23,7 +23,7 @@ class Connect implements Callable<Connection> {
         String username = PropertiesUtilManager.getPropertiesValue("jdbc.username");
         try {
             connection = DriverManager.getConnection(url, username, "");
-            LOG.info("Testing Connection");
+            Log.info("Testing Connection");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

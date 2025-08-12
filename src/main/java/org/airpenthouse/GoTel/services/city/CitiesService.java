@@ -2,7 +2,7 @@ package org.airpenthouse.GoTel.services.city;
 
 import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.executors.CitiesExecutors;
 import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
 import org.springframework.stereotype.Service;
@@ -51,9 +51,9 @@ public class CitiesService extends CitiesExecutors implements Callable<Set<Citie
     }
 
     public Set<CitiesRequest> findCitiesByDistrict() {
-        LOG.info("Executing find cities by district service");
+        Log.info("Executing find cities by district service");
         CitiesEntity.QUERY_HANDLE = "GET_CITIES_BY_DISTRICT";
-        LOG.info(" data from the data structure for service : ");
+        Log.info(" data from the data structure for service : ");
         return initializeCitiesEntity().parallelStream().map(citiesMapper::toCitiesDto).collect(Collectors.toSet());
     }
 

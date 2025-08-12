@@ -2,10 +2,9 @@ package org.airpenthouse.GoTel.entities.languanges;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors;
-import org.springframework.stereotype.Component;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.concurrent.*;
@@ -14,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-@Component
 @AllArgsConstructor
 public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Callable<Set<WorldLanguagesEntity>>, Comparable<WorldLanguagesEntity> {
     @Getter
@@ -122,20 +120,20 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             preparedStatementFoRExecuteUpdate.setString(2, PropertiesUtilManager.getPropertiesValue("languageName"));
             try {
                 int updateRow = preparedStatementFoRExecuteUpdate.executeUpdate();
-                LOG.info("" + updateRow);
+                Log.info("" + updateRow);
                 if (updateRow > 0) {
                     update = true;
                     Set<WorldLanguagesEntity> set = getLanguageByName();
 
-                    LOG.info(set.toString());
+                    Log.info(set.toString());
                     return set;
                 } else {
-                    LOG.info("Can't update, LANGUAGE to update not there");
+                    Log.info("Can't update, LANGUAGE to update not there");
                     languages = new CopyOnWriteArraySet<>();
                     return languages;
                 }
             } catch (SQLIntegrityConstraintViolationException e) {
-                LOG.info("Can't update , DUPLICATE VALUE");
+                Log.info("Can't update , DUPLICATE VALUE");
                 languages = new CopyOnWriteArraySet<>();
                 return languages;
             }
@@ -158,7 +156,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             int updatedRow = preparedStatementFoRExecuteUpdate.executeUpdate();
             if (updatedRow > 0) {
                 Set<WorldLanguagesEntity> set = getLanguageByName();
-                LOG.info(set.toString());
+                Log.info(set.toString());
                 return set;
             } else {
                 languages = new CopyOnWriteArraySet<>();
@@ -178,25 +176,25 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
     private Set<WorldLanguagesEntity> insertWorldLanguage() {
         try {
             preparedStatementFoRExecuteUpdate = databaseConfig(insertLanguage);
-            LOG.info(PropertiesUtilManager.getPropertiesValue("countryName1"));
+            Log.info(PropertiesUtilManager.getPropertiesValue("countryName1"));
             preparedStatementFoRExecuteUpdate.setString(1, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
             preparedStatementFoRExecuteUpdate.setString(2, PropertiesUtilManager.getPropertiesValue("languageName"));
             preparedStatementFoRExecuteUpdate.setString(3, "F");
             preparedStatementFoRExecuteUpdate.setDouble(4, 0.0);
 
             Set<WorldLanguagesEntity> set = getCityByLanguageAndCountry(PropertiesUtilManager.getPropertiesValue("languageName"), PropertiesUtilManager.getPropertiesValue("countryName1"));
-            LOG.info("Testing : " + set);
+            Log.info("Testing : " + set);
 
             if (set.size() == 0) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 added = true;
                 languages = getCityByLanguageAndCountry(PropertiesUtilManager.getPropertiesValue("languageName"), PropertiesUtilManager.getPropertiesValue("countryName1"));
-                LOG.info("Data inserted");
+                Log.info("Data inserted");
             } else {
                 if (added) {
                     added = false;
                 } else {
-                    LOG.info("LOGGING INSERTING FAILED, DUPLICATE ELEMENT : " + set);
+                    Log.info("LOGGING INSERTING FAILED, DUPLICATE ELEMENT : " + set);
                     languages.clear();
                 }
             }
@@ -231,7 +229,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
                     languages.add(new WorldLanguagesEntity(set.getString(1), set.getString(2), false));
             }
         }
-        LOG.info(languages.toString());
+        Log.info(languages.toString());
         return languages;
     }
 

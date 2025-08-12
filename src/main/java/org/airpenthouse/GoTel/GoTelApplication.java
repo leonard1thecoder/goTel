@@ -1,8 +1,9 @@
 package org.airpenthouse.GoTel;
 
+import org.airpenthouse.GoTel.util.Log;
+import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
@@ -12,8 +13,8 @@ import org.springframework.context.annotation.PropertySource;
 public class GoTelApplication {
 
     public static void main(String[] args) {
-        ApplicationContext xo = SpringApplication.run(GoTelApplication.class, args);
-
+        Log.info("Application Name : " + PropertiesUtilManager.getPropertiesValue("spring.application.name") + "Started");
+        SpringApplication.run(GoTelApplication.class, args);
     }
 
 }
