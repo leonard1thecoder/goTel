@@ -15,14 +15,14 @@ import java.util.concurrent.*;
 
 @Component
 public class CountriesExecutors extends CountApiUsers {
-    private final ExecutorService executeCities;
+    private final ExecutorService executeCountries;
     @Getter
     @Autowired
     private CountriesMapper mapper;
 
     protected CountriesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
-        executeCities = Executors.newFixedThreadPool(noProcesses);
+        executeCountries = Executors.newFixedThreadPool(noProcesses);
     }
 
 
@@ -48,23 +48,23 @@ public class CountriesExecutors extends CountApiUsers {
         }
     }
 
-    public Set<CountriesEntity> initializeCountriesEntity() {
+    protected Set<CountriesEntity> initializeCountriesEntity() {
         return executeCountriesEntity();
     }
 
-    public Set<CountriesRequest> initializeCountriesService() {
+    protected Set<CountriesRequest> initializeCountriesService() {
         return executeCountriesServices();
     }
 
     private Set<CountriesEntity> implCountriesEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesEntity>> futureCollection;
-        futureCollection = executeCities.submit(CountriesEntity.getInstance());
+        futureCollection = executeCountries.submit(CountriesEntity.getInstance());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
     private Set<CountriesRequest> implCountriesServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesRequest>> futureCollection;
-        futureCollection = executeCities.submit(CountriesService.getInstance());
+        futureCollection = executeCountries.submit(CountriesService.getInstance());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 

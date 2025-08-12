@@ -15,7 +15,6 @@ import java.util.concurrent.*;
 
 @Component
 public class CitiesExecutors extends CountApiUsers {
-    private static CitiesExecutors instance;
     private final ExecutorService executeCities;
     @Autowired
     @Getter
@@ -24,13 +23,6 @@ public class CitiesExecutors extends CountApiUsers {
     protected CitiesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
         executeCities = Executors.newFixedThreadPool(noProcesses);
-    }
-
-    public static CitiesExecutors getInstances() {
-        if (instance == null) {
-            instance = new CitiesExecutors();
-        }
-        return instance;
     }
 
     private Set<CitiesRequest> executeCitiesService() {
@@ -53,11 +45,11 @@ public class CitiesExecutors extends CountApiUsers {
         return null;
     }
 
-    public Set<CitiesEntity> initializeCitiesEntity() {
+    protected Set<CitiesEntity> initializeCitiesEntity() {
         return executeCitiesEntity();
     }
 
-    public Set<CitiesRequest> initializeCitiesService() {
+    protected Set<CitiesRequest> initializeCitiesService() {
         return executeCitiesService();
     }
 
