@@ -64,6 +64,8 @@ public class CountApiUsers extends CommonEntityMethod {
                 updatePreparedStatement.setInt(1, countWorldLanguagesUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
             }
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
@@ -85,6 +87,8 @@ public class CountApiUsers extends CommonEntityMethod {
                 updatePreparedStatement.setInt(1, countWorldCitiesUsersUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
             }
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
