@@ -2,6 +2,7 @@ package org.airpenthouse.GoTel.util;
 
 import lombok.Getter;
 import org.springframework.stereotype.Component;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -17,7 +17,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CountApiUsers extends CommonEntityMethod {
 
     private static final CountApiUsers instance = new CountApiUsers();
-    private AtomicInteger countWorldLanguagesUsers, countWorldCountriesUsers, countWorldCitiesUsersUsers;
+    @Getter
+    private Integer countWorldLanguagesUsers, countWorldCountriesUsers, countWorldCitiesUsersUsers;
     private String getCountsByMembershipQuery, getCountsQuery, upgradeWorldLanguageCountQuery, upgradeWorldCountriesCountQuery, upgradeWorldCitiesCountQuery;
     private PreparedStatement st, updatePreparedStatement;
     private ExecutorService executorService;
@@ -29,10 +30,6 @@ public class CountApiUsers extends CommonEntityMethod {
     protected CountApiUsers() {
         super();
         lock = new ReentrantLock();
-
-        this.countWorldLanguagesUsers = new AtomicInteger();
-        this.countWorldCountriesUsers = new AtomicInteger();
-        this.countWorldCitiesUsersUsers = new AtomicInteger();
         this.format = DateTimeFormatter.ofPattern("dd/MMM/yyyy hh:mm");
         executorService = Executors.newSingleThreadExecutor();
         getCountsByMembershipQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllCountByPrivilegeName");
@@ -43,9 +40,9 @@ public class CountApiUsers extends CommonEntityMethod {
     }
 
     private CountApiUsers(Integer countWorldLanguagesUsers, Integer countWorldCountriesUsers, Integer countWorldCitiesUsersUsers) {
-        this.countWorldLanguagesUsers.set(countWorldLanguagesUsers);
-        this.countWorldCountriesUsers.set(countWorldCountriesUsers);
-        this.countWorldCitiesUsersUsers.set(countWorldCitiesUsersUsers);
+        this.countWorldLanguagesUsers = countWorldLanguagesUsers;
+        this.countWorldCountriesUsers = (countWorldCountriesUsers);
+        this.countWorldCitiesUsersUsers = (countWorldCitiesUsersUsers);
     }
 
     public static CountApiUsers getInstance() {
@@ -60,8 +57,8 @@ public class CountApiUsers extends CommonEntityMethod {
             updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldLanguagesUsers.get());
-                updatePreparedStatement.setInt(1, countWorldLanguagesUsers.incrementAndGet());
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers++);
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -83,8 +80,8 @@ public class CountApiUsers extends CommonEntityMethod {
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldCitiesUsersUsers.get());
-                updatePreparedStatement.setInt(1, countWorldCitiesUsersUsers.incrementAndGet());
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers++);
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -106,8 +103,7 @@ public class CountApiUsers extends CommonEntityMethod {
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldCountriesUsers.get());
-                updatePreparedStatement.setInt(1, countWorldCountriesUsers.incrementAndGet());
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers++);
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
