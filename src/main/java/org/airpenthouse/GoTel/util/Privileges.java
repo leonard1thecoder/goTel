@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public enum PRIVILEGES {
+public enum Privileges {
     NO_MEMBERSHIP("NO_MEMBERSHIP", 3),
     MEMBERSHIP("MEMBERSHIP", 4);
 

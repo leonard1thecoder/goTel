@@ -6,7 +6,7 @@ import org.airpenthouse.GoTel.dtos.languages.LanguageRequest;
 import org.airpenthouse.GoTel.dtos.languages.UpdateLanguageRequest;
 import org.airpenthouse.GoTel.dtos.languages.UpdateLanguageStatus;
 import org.airpenthouse.GoTel.services.language.WorldLanguagesService;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.mappers.LanguageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ public class WorldLanguagesController extends WorldLanguagesService {
     public ResponseEntity<Void> updateLanguageName(@RequestBody UpdateLanguageRequest request) {
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_NAME";
         var dto = mapper.toWorldEntity(request);
-        LOG.info(dto.getLanguageName() + " " + dto.getNewLanguageName());
+        Log.info(dto.getLanguageName() + " " + dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("newLanguageName", dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
         entities = initializeWorldLanguageService();
@@ -101,8 +101,8 @@ public class WorldLanguagesController extends WorldLanguagesService {
         var entity = mapper.toWorldEntity(request);
         PropertiesUtilManager.setProperties("countryName1", entity.getCountryName());
         PropertiesUtilManager.setProperties("languageName", entity.getLanguageName());
-        LOG.info(entity.getCountryName());
-        LOG.info(entity.getLanguageName());
+        Log.info(entity.getCountryName());
+        Log.info(entity.getLanguageName());
         // creating status 201
         entities = initializeWorldLanguageService();
         if (entities.isEmpty())

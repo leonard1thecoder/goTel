@@ -15,14 +15,14 @@ import java.util.concurrent.*;
 
 @Component
 public class WorldLanguagesExecutors extends CountApiUsers {
-    private final ExecutorService executeCities;
+    private final ExecutorService executeLanguages;
     @Autowired
     @Getter
     private LanguageMapper languageMapper;
 
     protected WorldLanguagesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
-        executeCities = Executors.newFixedThreadPool(noProcesses);
+        executeLanguages = Executors.newFixedThreadPool(noProcesses);
     }
 
 
@@ -50,23 +50,23 @@ public class WorldLanguagesExecutors extends CountApiUsers {
         }
     }
 
-    public Set<WorldLanguagesEntity> initializeWorldLanguagesEntity() {
+    protected Set<WorldLanguagesEntity> initializeWorldLanguagesEntity() {
         return executeWorldLanguageEntity();
     }
 
-    public Set<LanguageRequest> initializeWorldLanguageService() {
+    protected Set<LanguageRequest> initializeWorldLanguageService() {
         return executeWorldLanguageService();
     }
 
     private Set<WorldLanguagesEntity> implWorldLanguageEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<WorldLanguagesEntity>> futureCollection;
-        futureCollection = executeCities.submit(WorldLanguagesEntity.getInstance());
+        futureCollection = executeLanguages.submit(WorldLanguagesEntity.getInstance());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
     private Set<LanguageRequest> implWorldLanguageServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<LanguageRequest>> futureCollection;
-        futureCollection = executeCities.submit(WorldLanguagesService.getInstance());
+        futureCollection = executeLanguages.submit(WorldLanguagesService.getInstance());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 

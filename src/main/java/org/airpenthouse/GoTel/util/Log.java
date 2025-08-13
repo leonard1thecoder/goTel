@@ -1,10 +1,9 @@
 package org.airpenthouse.GoTel.util;
 
-import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 
-public class LOG {
-    private static final Log log = LogFactory.getLog(LOG.class);
+public class Log {
+    private static final org.apache.juli.logging.Log log = LogFactory.getLog(Log.class);
 
     public static void info(String message) {
         log.info(message);

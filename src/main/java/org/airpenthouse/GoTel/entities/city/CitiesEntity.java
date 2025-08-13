@@ -3,10 +3,9 @@ package org.airpenthouse.GoTel.entities.city;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.CitiesExecutors;
-import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.*;
 import static org.airpenthouse.GoTel.util.PropertiesUtilManager.getPropertiesValue;
 
-@Component
 @AllArgsConstructor
 public class CitiesEntity extends CitiesExecutors implements Callable<Set<CitiesEntity>>, Comparable<CitiesEntity> {
 
@@ -99,9 +97,9 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
             preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCityWithNameAndCountry);
 
             preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
-            LOG.info(getPropertiesValue("cityName"));
+            Log.info(getPropertiesValue("cityName"));
             preparedStatementFoRResultSet.setString(2, getPropertiesValue("countryName1"));
-            LOG.info(getPropertiesValue("countryName1"));
+            Log.info(getPropertiesValue("countryName1"));
             return addDataFromDBToList(true);
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -113,10 +111,10 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
             preparedStatementFoRResultSet = databaseConfig(jdbcQueryFindCityByName);
             if (this.changeToNewCityName) {
                 preparedStatementFoRResultSet.setString(1, getPropertiesValue("newCityName"));
-                LOG.info("TRUE");
+                Log.info("TRUE");
                 changeToNewCityName = false;
             } else {
-                LOG.info("FALSE");
+                Log.info("FALSE");
                 preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
             }
             return addDataFromDBToList(true);
@@ -147,12 +145,12 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
             preparedStatementFoRExecuteUpdate.setString(3, PropertiesUtilManager.getPropertiesValue("districtName"));
             preparedStatementFoRExecuteUpdate.setInt(4, 0);
             Set<CitiesEntity> set = getCitiesByNameAndCountry();
-            LOG.info("testing" + set);
+            Log.info("testing" + set);
 
             if (set.size() == 0) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 cities = getCitiesByNameAndCountry();
-                LOG.info("Data inserted");
+                Log.info("Data inserted");
                 return cities;
             } else {
                 cities = new CopyOnWriteArraySet<>();
@@ -188,12 +186,12 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
             preparedStatementFoRExecuteUpdate.setString(1, "newCityName");
             preparedStatementFoRExecuteUpdate.setString(2, getPropertiesValue("cityName"));
             Set<CitiesEntity> set = getCityByName();
-            LOG.info("" + set.size());
+            Log.info("" + set.size());
             if (set.size() != 0) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 changeToNewCityName = true;
                 var local = getCityByName();
-                LOG.info("" + local);
+                Log.info("" + local);
                 return local;
             } else {
                 cities = new CopyOnWriteArraySet<>();
@@ -234,7 +232,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
             }
             set.close();
         }
-        LOG.info("data from database to data structure cities data : " + cities);
+        Log.info("data from database to data structure cities data : " + cities);
         return cities;
     }
 

@@ -7,14 +7,12 @@ import java.sql.SQLException;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-@Component
 
 @AllArgsConstructor
 public final class CountriesEntity extends CountriesExecutors implements Callable<Set<CountriesEntity>>, Comparable<CountriesEntity> {
@@ -53,8 +51,8 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
         try {
 
             ps = databaseConfig(jdbcQueryFindCountryByName);
-            LOG.info(jdbcQueryFindCountryByName);
-            LOG.info("OK#######1");
+            Log.info(jdbcQueryFindCountryByName);
+            Log.info("OK#######1");
             ps.setString(1, PropertiesUtilManager.getPropertiesValue("countryName"));
             ResultSet set = ps.executeQuery();
             return addDataFromDbToSet(set);
@@ -105,7 +103,7 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
         try {
             ps = databaseConfig(jdbcQueryFindAllCountries);
             ResultSet set = ps.executeQuery();
-            LOG.info("OK#######**********");
+            Log.info("OK#######**********");
             return addDataFromDbToSet(set);
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);

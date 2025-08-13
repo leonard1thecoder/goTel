@@ -1,34 +1,38 @@
 package org.airpenthouse.GoTel.util;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
+@AllArgsConstructor
 public class CountApiUsers extends CommonEntityMethod {
 
     private static final CountApiUsers instance = new CountApiUsers();
-    private AtomicInteger countWorldLanguagesUsers, countWorldCountriesUsers, countWorldCitiesUsersUsers;
+    @Getter
+    private Integer countWorldLanguagesUsers, countWorldCountriesUsers, countWorldCitiesUsersUsers;
     private String getCountsByMembershipQuery, getCountsQuery, upgradeWorldLanguageCountQuery, upgradeWorldCountriesCountQuery, upgradeWorldCitiesCountQuery;
     private PreparedStatement st, updatePreparedStatement;
     private ExecutorService executorService;
     private Lock lock;
+    @Getter
+    private LocalDateTime modifiedDate;
+    private DateTimeFormatter format;
 
     protected CountApiUsers() {
         super();
         lock = new ReentrantLock();
-
-        this.countWorldLanguagesUsers = new AtomicInteger();
-        this.countWorldCountriesUsers = new AtomicInteger();
-        this.countWorldCitiesUsersUsers = new AtomicInteger();
-
+        this.format = DateTimeFormatter.ofPattern("dd/MMM/yyyy hh:mm");
         executorService = Executors.newSingleThreadExecutor();
         getCountsByMembershipQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllCountByPrivilegeName");
         getCountsQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllCounts");
@@ -38,26 +42,99 @@ public class CountApiUsers extends CommonEntityMethod {
     }
 
     private CountApiUsers(Integer countWorldLanguagesUsers, Integer countWorldCountriesUsers, Integer countWorldCitiesUsersUsers) {
-        this.countWorldLanguagesUsers.set(countWorldLanguagesUsers);
-        this.countWorldCountriesUsers.set(countWorldCountriesUsers);
-        this.countWorldCitiesUsersUsers.set(countWorldCitiesUsersUsers);
+        this.countWorldLanguagesUsers = countWorldLanguagesUsers;
+        this.countWorldCountriesUsers = (countWorldCountriesUsers);
+        this.countWorldCitiesUsersUsers = (countWorldCitiesUsersUsers);
     }
 
     public static CountApiUsers getInstance() {
         return instance;
     }
 
+    protected void updateWorldLanguageCountForMembers() {
+        try {
+            lock.lock();
+            modifiedDate = LocalDateTime.now();
+            updatePreparedStatement = databaseConfig(upgradeWorldLanguageCountQuery);
+            updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
+            var list = getCountiesByNoMembership();
+            if (list.size() == 1) {
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
+            }
+
+        } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    protected void updateWorldCitiesCountForMembers() {
+        try {
+            lock.lock();
+            modifiedDate = LocalDateTime.now();
+            updatePreparedStatement = databaseConfig(upgradeWorldCitiesCountQuery);
+            updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
+            var list = getCountiesByNoMembership();
+            if (list.size() == 1) {
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
+            }
+
+        } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    protected void updateWorldCountriesCountForMembers() {
+        try {
+            lock.lock();
+            modifiedDate = LocalDateTime.now();
+            updatePreparedStatement = databaseConfig(upgradeWorldCountriesCountQuery);
+            updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
+            var list = getCountiesByNoMembership();
+            if (list.size() == 1) {
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
+            }
+
+        } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     protected void updateWorldLanguageCount() {
         try {
             lock.lock();
+            modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldLanguageCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldLanguagesUsers.get());
-                updatePreparedStatement.setInt(2, countWorldLanguagesUsers.incrementAndGet());
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
             }
-            updatePreparedStatement.executeUpdate();
+
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -68,14 +145,19 @@ public class CountApiUsers extends CommonEntityMethod {
     protected void updateWorldCitiesCount() {
         try {
             lock.lock();
+            modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCitiesCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldCitiesUsersUsers.get());
-                updatePreparedStatement.setInt(2, countWorldCitiesUsersUsers.incrementAndGet());
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
             }
-            updatePreparedStatement.executeUpdate();
+
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
         } finally {
@@ -86,20 +168,25 @@ public class CountApiUsers extends CommonEntityMethod {
     protected void updateWorldCountriesCount() {
         try {
             lock.lock();
+            modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCountriesCountQuery);
-            updatePreparedStatement.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                countWorldLanguagesUsers.set(list.get(0).countWorldCountriesUsers.get());
-                updatePreparedStatement.setInt(2, countWorldCountriesUsers.incrementAndGet());
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers++);
+                updatePreparedStatement.setString(2, modifiedDate.format(format));
+                updatePreparedStatement.executeUpdate();
+            } else {
+                throw new RuntimeException("Error occurred while updating");
             }
-            updatePreparedStatement.executeUpdate();
+
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
         } finally {
             lock.unlock();
         }
     }
+
 
     public List<CountApiUsers> prepareToGetAllCounties() {
         Future<List<CountApiUsers>> future = executorService.submit(instance::getAllCounties);
@@ -122,7 +209,7 @@ public class CountApiUsers extends CommonEntityMethod {
     private List<CountApiUsers> getCountiesByNoMembership() {
         try {
             st = databaseConfig(getCountsByMembershipQuery);
-            st.setString(1, PRIVILEGES.NO_MEMBERSHIP.getMembershipName());
+            st.setString(1, Privileges.NO_MEMBERSHIP.getMembershipName());
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
@@ -139,7 +226,7 @@ public class CountApiUsers extends CommonEntityMethod {
         }
         set.close();
 
-        LOG.info("data from database to data structure cities data : " + list);
+        Log.info("data from database to data structure cities data : " + list);
         return list;
     }
 

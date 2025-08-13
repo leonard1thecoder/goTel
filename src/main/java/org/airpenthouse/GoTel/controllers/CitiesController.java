@@ -5,7 +5,7 @@ import org.airpenthouse.GoTel.dtos.cities.CreateNewCityRequest;
 import org.airpenthouse.GoTel.dtos.cities.UpdateCityNameRequest;
 import org.airpenthouse.GoTel.dtos.cities.UpdateCityPopulation;
 import org.airpenthouse.GoTel.services.city.CitiesService;
-import org.airpenthouse.GoTel.util.LOG;
+import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.mappers.CitiesMapper;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +78,7 @@ public class CitiesController extends CitiesService {
     @GetMapping("/findByCountryName/{countryName}")
     public ResponseEntity<Set<CitiesRequest>> findCitiesByCountries(@PathVariable String countryName) {
         CitiesService.SERVICE_TRIGGER = "FIND_CITIES_BY_COUNTRY";
-        LOG.info(countryName);
+        Log.info(countryName);
         PropertiesUtilManager.setProperties("countryName", countryName);
         entities = initializeCitiesService();
 
@@ -92,10 +92,10 @@ public class CitiesController extends CitiesService {
     @GetMapping("/findCitiesByDistrict/{district}")
     public ResponseEntity<Set<CitiesRequest>> findCitiesByDistrict(@PathVariable String district) {
 
-        LOG.info("Executing the find cities by district API ");
+        Log.info("Executing the find cities by district API ");
         CitiesService.SERVICE_TRIGGER = "GET_CITIES_BY_DISTRICT";
         PropertiesUtilManager.setProperties("districtName", district);
-        LOG.info("District searched is " + district);
+        Log.info("District searched is " + district);
         entities = initializeCitiesService();
 
         if (entities.isEmpty()) {
