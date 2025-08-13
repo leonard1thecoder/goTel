@@ -1,5 +1,6 @@
 package org.airpenthouse.GoTel.util;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
+@AllArgsConstructor
 public class CountApiUsers extends CommonEntityMethod {
 
     private static final CountApiUsers instance = new CountApiUsers();
