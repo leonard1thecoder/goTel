@@ -17,7 +17,6 @@ import java.util.Set;
 @AllArgsConstructor
 public final class CountriesEntity extends CountriesExecutors implements Callable<Set<CountriesEntity>>, Comparable<CountriesEntity> {
 
-    private static CountriesEntity instance;
     @Getter
     private String countryName;
     @Getter
@@ -30,21 +29,13 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
     public static String ENTITY_TRIGGER;
     private String jdbcQueryFindAllCountries, jdbcQueryFindCountryByName, jdbcQueryFindCountryByRegion, jdbcQueryFindCountryByContinent;
 
-    private CountriesEntity() {
-        super();
-
+    public CountriesEntity() {
         jdbcQueryFindAllCountries = PropertiesUtilManager.getPropertiesValue("jdbc.query.allCountries");
         jdbcQueryFindCountryByName = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryByName");
         jdbcQueryFindCountryByContinent = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByContinent");
         jdbcQueryFindCountryByRegion = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByRegion");
     }
 
-    public static CountriesEntity getInstance() {
-        if (instance == null) {
-            instance = new CountriesEntity();
-        }
-        return instance;
-    }
 
     private Set<CountriesEntity> getCountryByName() {
         PreparedStatement ps;
