@@ -2,11 +2,9 @@ package org.airpenthouse.GoTel.entities.city;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.CitiesExecutors;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,11 +15,10 @@ import static org.airpenthouse.GoTel.util.PropertiesUtilManager.getPropertiesVal
 @AllArgsConstructor
 public class CitiesEntity extends CitiesExecutors implements Callable<Set<CitiesEntity>>, Comparable<CitiesEntity> {
 
-    private static CitiesEntity instance;
     @Getter
     private int cityId;
     @Getter
-    private String cityName;
+    private String cityName, newCityName;
     @Getter
     private String district;
     @Getter
@@ -34,7 +31,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
     private String jdbcQueryAllGetCities, jdbcQueryFindCityWithNameAndCountry, jdbcQueryFindCityByName, jdbcInsertIntoQuery, jdbcUpdateCityPopulation, jdbcUpdateCityName, jdbcQueryFindCitiesByDistrict, jdbcQueryFindCitiesByCountryName;
 
 
-    private CitiesEntity() {
+    public CitiesEntity() {
         super();
         cities = new CopyOnWriteArraySet<>();
         this.jdbcQueryFindCityWithNameAndCountry = getPropertiesValue("jdbc.query.findCityByNameAndCountry");
@@ -47,12 +44,6 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
         this.jdbcUpdateCityName = getPropertiesValue("jdbc.update.updateCityName");
     }
 
-    public static CitiesEntity getInstance() {
-        if (instance == null) {
-            instance = new CitiesEntity();
-        }
-        return instance;
-    }
 
 
     @Override
@@ -74,7 +65,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
     private Set<CitiesEntity> getAllCities() {
         try {
             preparedStatementFoRResultSet = databaseConfig(jdbcQueryAllGetCities);
-            return addDataFromDBToList(true);
+            return addDataFromDBToList();
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -84,7 +75,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
         try {
             preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCitiesByDistrict);
             preparedStatementFoRResultSet.setString(1, getPropertiesValue("districtName"));
-            return addDataFromDBToList(true);
+            return addDataFromDBToList();
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -92,15 +83,12 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
 
     private Set<CitiesEntity> getCitiesByNameAndCountry() {
         try {
-
-
             preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCityWithNameAndCountry);
-
             preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
             Log.info(getPropertiesValue("cityName"));
             preparedStatementFoRResultSet.setString(2, getPropertiesValue("countryName1"));
             Log.info(getPropertiesValue("countryName1"));
-            return addDataFromDBToList(true);
+            return addDataFromDBToList();
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -117,7 +105,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
                 Log.info("FALSE");
                 preparedStatementFoRResultSet.setString(1, getPropertiesValue("cityName"));
             }
-            return addDataFromDBToList(true);
+            return addDataFromDBToList();
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -128,7 +116,7 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
 
             preparedStatementFoRResultSet = databaseConfig(this.jdbcQueryFindCitiesByCountryName);
             preparedStatementFoRResultSet.setString(1, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName")));
-            return addDataFromDBToList(true);
+            return addDataFromDBToList();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -140,22 +128,21 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
 
             preparedStatementFoRExecuteUpdate = databaseConfig(jdbcInsertIntoQuery);
 
-            preparedStatementFoRExecuteUpdate.setString(2, getCountryCodeByCountryName(PropertiesUtilManager.getPropertiesValue("countryName1")));
-            preparedStatementFoRExecuteUpdate.setString(1, PropertiesUtilManager.getPropertiesValue("cityName"));
-            preparedStatementFoRExecuteUpdate.setString(3, PropertiesUtilManager.getPropertiesValue("districtName"));
-            preparedStatementFoRExecuteUpdate.setInt(4, 0);
+            preparedStatementFoRExecuteUpdate.setString(2, getCountryCodeByCountryName(getEntity().getCountryName()));
+            preparedStatementFoRExecuteUpdate.setString(1, getEntity().getCityName());
+            preparedStatementFoRExecuteUpdate.setString(3, getEntity().getDistrict());
+            preparedStatementFoRExecuteUpdate.setInt(4, getEntity().getPopulation());
             Set<CitiesEntity> set = getCitiesByNameAndCountry();
             Log.info("testing" + set);
 
-            if (set.size() == 0) {
+            if (set.isEmpty()) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 cities = getCitiesByNameAndCountry();
                 Log.info("Data inserted");
-                return cities;
             } else {
                 cities = new CopyOnWriteArraySet<>();
-                return cities;
             }
+            return cities;
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -165,10 +152,19 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
         try {
 
             preparedStatementFoRExecuteUpdate = databaseConfig(this.jdbcUpdateCityPopulation);
-            preparedStatementFoRExecuteUpdate.setInt(1, Integer.parseInt(getPropertiesValue("population")));
-            preparedStatementFoRExecuteUpdate.setString(2, "cityName");
-
-            return addDataFromDBToList(false);
+            preparedStatementFoRExecuteUpdate.setInt(1, getEntity().getPopulation());
+            preparedStatementFoRExecuteUpdate.setString(2, getEntity().getCityName());
+            Set<CitiesEntity> set = getCityByName();
+            if (!set.isEmpty()) {
+                preparedStatementFoRExecuteUpdate.executeUpdate();
+                changeToNewCityName = true;
+                var local = getCityByName();
+                Log.info("" + local);
+                return local;
+            } else {
+                cities = new CopyOnWriteArraySet<>();
+                return cities;
+            }
 
         } catch (SQLException | ExecutionException | TimeoutException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -183,11 +179,11 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
         try {
 
             preparedStatementFoRExecuteUpdate = databaseConfig(this.jdbcUpdateCityName);
-            preparedStatementFoRExecuteUpdate.setString(1, "newCityName");
-            preparedStatementFoRExecuteUpdate.setString(2, getPropertiesValue("cityName"));
+            preparedStatementFoRExecuteUpdate.setString(1, getEntity().getNewCityName());
+            preparedStatementFoRExecuteUpdate.setString(2, getEntity().getCityName());
             Set<CitiesEntity> set = getCityByName();
             Log.info("" + set.size());
-            if (set.size() != 0) {
+            if (!set.isEmpty()) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 changeToNewCityName = true;
                 var local = getCityByName();
@@ -219,19 +215,16 @@ public class CitiesEntity extends CitiesExecutors implements Callable<Set<Cities
 
     }
 
-
-    private boolean isInsertQuery;
-
-    private Set<CitiesEntity> addDataFromDBToList(boolean isResultSet) throws SQLException {
+    private Set<CitiesEntity> addDataFromDBToList() throws SQLException {
         cities = new ConcurrentSkipListSet<>();
-        if (isResultSet) {
-            ResultSet set = preparedStatementFoRResultSet.executeQuery();
+
+        ResultSet set = preparedStatementFoRResultSet.executeQuery();
 
             while (set.next()) {
                 cities.add(new CitiesEntity(set.getInt(1), set.getString(2), set.getString(3), set.getString(4), set.getInt(5)));
             }
             set.close();
-        }
+
         Log.info("data from database to data structure cities data : " + cities);
         return cities;
     }
