@@ -43,7 +43,7 @@ public class MembershipController {
 
     @PutMapping("/updateMembershipStatus")
     private ResponseEntity<Void> updateMembershipStatus(@RequestBody UpdateMembershipStatus request) {
-        executor.setMapper(mapper);
+        MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "UPDATE_MEMBERSHIP_STATUS";
         MembershipEntity entity = mapper.toEntity(request);
         var set = executor.initializeMembershipService(false, entity);
@@ -57,7 +57,7 @@ public class MembershipController {
 
     @PutMapping("/updateMembershipToken")
     private ResponseEntity<Void> updateMembershipToken(@RequestBody UpdateMembershipStatus request) {
-        executor.setMapper(mapper);
+        MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "UPDATE_MEMBERSHIP_TOKEN";
         MembershipEntity entity = mapper.toEntity(request);
         var set = executor.initializeMembershipService(false, entity);
@@ -71,7 +71,7 @@ public class MembershipController {
 
     @GetMapping("/getMemberByName/{memberName}")
     private ResponseEntity<Set<MembershipRequest>> getMemberByName(@PathVariable String memberName) {
-        executor.setMapper(mapper);
+        MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "GET_MEMBER_BY_NAME";
         PropertiesUtilManager.setProperties("memberName", memberName);
 
@@ -86,7 +86,7 @@ public class MembershipController {
 
     @GetMapping("/getAllMembers")
     private ResponseEntity<Set<MembershipRequest>> getAllMembers() {
-        executor.setMapper(mapper);
+        MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "GET_ALL_MEMBERS";
         var set = executor.initializeMembershipService(true, null);
         if (set.isEmpty()) {
