@@ -1,27 +1,30 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.membership.MembershipRequest;
 import org.airpenthouse.GoTel.entities.membership.MembershipEntity;
 import org.airpenthouse.GoTel.services.membership.MembershipService;
 import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.mappers.MembershipMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
+
 public class MembershipExecutor extends CommonEntityMethod {
 
-    private final ExecutorService executeMembership;
-    @Autowired
     @Getter
-    private MembershipMapper mapper;
+    private MembershipEntity entity;
 
-    protected MembershipExecutor() {
+    private MembershipService service;
+    @Getter
+    @Setter
+    private static MembershipMapper mapper;
+
+    public ExecutorService getMembershipExecutor() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
-        executeMembership = Executors.newFixedThreadPool(noProcesses);
+        return Executors.newFixedThreadPool(noProcesses);
     }
 
     private Set<MembershipRequest> executeMembershipService() {
@@ -42,24 +45,41 @@ public class MembershipExecutor extends CommonEntityMethod {
         return null;
     }
 
-    protected Set<MembershipEntity> initializeMembershipEntity() {
+    public Set<MembershipEntity> initializeMembershipEntity() {
         return executeMembershipEntity();
     }
 
-    protected Set<MembershipRequest> initializeMembershipService() {
-        return executeMembershipService();
+    public Set<MembershipRequest> initializeMembershipService(Boolean isResultSet, MembershipEntity entity) {
+        if (isResultSet) {
+            return executeMembershipService();
+        } else {
+            try {
+                return impMembershipServiceExecution(entity);
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Set<MembershipEntity> impMembershipEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
+        entity = new MembershipEntity();
         Future<Set<MembershipEntity>> futureCollection;
-        futureCollection = executeMembership.submit(MembershipEntity.getInstance());
+        futureCollection = getMembershipExecutor().submit(entity);
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
 
     }
 
     private Set<MembershipRequest> impMembershipServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<MembershipRequest>> futureCollection;
-        futureCollection = executeMembership.submit(MembershipService.getInstance());
+        futureCollection = getMembershipExecutor().submit(service);
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
+    }
+
+    private Set<MembershipRequest> impMembershipServiceExecution(MembershipEntity entity) throws ExecutionException, InterruptedException, TimeoutException {
+        this.entity = entity;
+        service = new MembershipService();
+        Future<Set<MembershipRequest>> futureCollection;
+        futureCollection = getMembershipExecutor().submit(service);
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 }

@@ -1,6 +1,7 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.cities.CitiesRequest;
 import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.services.city.CitiesService;
@@ -13,13 +14,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
-@Component
+
 public class CitiesExecutors extends CountApiUsers {
     private final ExecutorService executeCities;
-    @Autowired
     @Getter
-    private CitiesMapper mapper;
-
+    @Setter
+    private static CitiesMapper mapper;
+    @Getter
+    private CitiesEntity entity;
     protected CitiesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
         executeCities = Executors.newFixedThreadPool(noProcesses);
@@ -49,20 +51,35 @@ public class CitiesExecutors extends CountApiUsers {
         return executeCitiesEntity();
     }
 
-    protected Set<CitiesRequest> initializeCitiesService() {
-        return executeCitiesService();
+    public Set<CitiesRequest> initializeCitiesService(boolean isResutlSet, CitiesEntity entity) {
+        if (isResutlSet) {
+            return executeCitiesService();
+        } else {
+            try {
+                return impCitiesServiceExecution(entity);
+            } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Set<CitiesEntity> impCitiesEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CitiesEntity>> futureCollection;
-        futureCollection = executeCities.submit(CitiesEntity.getInstance());
+        futureCollection = executeCities.submit(new CitiesEntity());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
 
     }
 
     private Set<CitiesRequest> impCitiesServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CitiesRequest>> futureCollection;
-        futureCollection = executeCities.submit(CitiesService.getInstance());
+        futureCollection = executeCities.submit(new CitiesService());
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
+    }
+
+    private Set<CitiesRequest> impCitiesServiceExecution(CitiesEntity entity) throws ExecutionException, InterruptedException, TimeoutException {
+        this.entity = entity;
+        Future<Set<CitiesRequest>> futureCollection;
+        futureCollection = executeCities.submit(new CitiesService());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 }

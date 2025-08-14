@@ -1,28 +1,38 @@
 package org.airpenthouse.GoTel.util.executors;
 
+
 import lombok.Getter;
+import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.languages.LanguageRequest;
 import org.airpenthouse.GoTel.entities.languanges.WorldLanguagesEntity;
 import org.airpenthouse.GoTel.services.language.WorldLanguagesService;
 import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.mappers.LanguageMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
-@Component
+
 public class WorldLanguagesExecutors extends CountApiUsers {
-    private final ExecutorService executeLanguages;
-    @Autowired
+
+    @Setter
     @Getter
-    private LanguageMapper languageMapper;
+    private static LanguageMapper languageMapper;
+
+    @Getter
+    private WorldLanguagesEntity entity;
+    @Getter
+    @Setter
+    private WorldLanguagesService service;
 
     protected WorldLanguagesExecutors() {
+
+    }
+
+    public ExecutorService worldLanguagesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
-        executeLanguages = Executors.newFixedThreadPool(noProcesses);
+        return Executors.newFixedThreadPool(noProcesses);
     }
 
 
@@ -50,23 +60,41 @@ public class WorldLanguagesExecutors extends CountApiUsers {
         }
     }
 
-    protected Set<WorldLanguagesEntity> initializeWorldLanguagesEntity() {
+    public Set<WorldLanguagesEntity> initializeWorldLanguagesEntity() {
         return executeWorldLanguageEntity();
     }
 
-    protected Set<LanguageRequest> initializeWorldLanguageService() {
+    public Set<LanguageRequest> initializeWorldLanguageService(boolean isResultSet, WorldLanguagesEntity entity) {
+        if (isResultSet)
         return executeWorldLanguageService();
+        else {
+            try {
+                return implWorldLanguageServiceExecution(entity);
+            } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Set<WorldLanguagesEntity> implWorldLanguageEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<WorldLanguagesEntity>> futureCollection;
-        futureCollection = executeLanguages.submit(WorldLanguagesEntity.getInstance());
+        entity = new WorldLanguagesEntity();
+        futureCollection = worldLanguagesExecutors().submit(getEntity());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
     private Set<LanguageRequest> implWorldLanguageServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<LanguageRequest>> futureCollection;
-        futureCollection = executeLanguages.submit(WorldLanguagesService.getInstance());
+        service = new WorldLanguagesService();
+        futureCollection = worldLanguagesExecutors().submit(this.getService());
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
+    }
+
+    private Set<LanguageRequest> implWorldLanguageServiceExecution(WorldLanguagesEntity entity) throws ExecutionException, InterruptedException, TimeoutException {
+        this.entity = entity;
+        Future<Set<LanguageRequest>> futureCollection;
+        service = new WorldLanguagesService();
+        futureCollection = worldLanguagesExecutors().submit(this.getService());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
