@@ -5,8 +5,8 @@ import lombok.Getter;
 import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors;
-
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.Set;
 import java.sql.SQLException;
@@ -14,7 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 @AllArgsConstructor
-public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Callable<Set<WorldLanguagesEntity>>, Comparable<WorldLanguagesEntity> {
+public final class WorldLanguagesEntity extends WorldLanguagesExecutors implements Callable<Set<WorldLanguagesEntity>>, Comparable<WorldLanguagesEntity> {
     @Getter
     private String countryName;
     @Getter
@@ -23,24 +23,16 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
     private Boolean languageStatus;
     @Getter
     private String newLanguageName;
-    private static WorldLanguagesEntity instance;
 
     private String queryFindAllLanguages, queryFindCityWithLanguageAndCountryName, queryFindLanguagesByCountryName, queryFindLanguageByName, updateLanguageName, updateLanguageStatus, insertLanguage;
     private Set<WorldLanguagesEntity> languages;
-
-    public static WorldLanguagesEntity getInstance() {
-        if (instance == null) {
-            instance = new WorldLanguagesEntity();
-        }
-        return instance;
-    }
 
     @Override
     public int compareTo(WorldLanguagesEntity obj) {
         return languageName.compareTo(obj.languageName);
     }
 
-    private WorldLanguagesEntity() {
+    public WorldLanguagesEntity() {
         super();
         queryFindCityWithLanguageAndCountryName = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCityByCountryNameAndLanguage");
         queryFindAllLanguages = PropertiesUtilManager.getPropertiesValue("jdbc.query.allLanguage");
@@ -64,7 +56,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             preparedStatementFoRResultSet = databaseConfig(queryFindCityWithLanguageAndCountryName);
             preparedStatementFoRResultSet.setString(1, languageName);
             preparedStatementFoRResultSet.setString(2, countryName);
-            return addDatFromDBToList(true);
+            return addDatFromDBToList();
         } catch (SQLException | TimeoutException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null;
@@ -75,7 +67,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
         try {
             preparedStatementFoRResultSet = databaseConfig(queryFindAllLanguages);
 
-            return addDatFromDBToList(true);
+            return addDatFromDBToList();
         } catch (SQLException | TimeoutException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null;
@@ -93,7 +85,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             } else {
                 preparedStatementFoRResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("languageName"));
             }
-            return addDatFromDBToList(true);
+            return addDatFromDBToList();
         } catch (SQLException | TimeoutException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null;
@@ -105,7 +97,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             preparedStatementFoRResultSet = databaseConfig(queryFindLanguagesByCountryName);
             preparedStatementFoRResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("countryName1"));
 
-            return addDatFromDBToList(true);
+            return addDatFromDBToList();
         } catch (SQLException | TimeoutException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null;
@@ -123,10 +115,8 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
                 Log.info("" + updateRow);
                 if (updateRow > 0) {
                     update = true;
-                    Set<WorldLanguagesEntity> set = getLanguageByName();
 
-                    Log.info(set.toString());
-                    return set;
+                    return getLanguageByName();
                 } else {
                     Log.info("Can't update, LANGUAGE to update not there");
                     languages = new CopyOnWriteArraySet<>();
@@ -155,9 +145,8 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             preparedStatementFoRExecuteUpdate.setString(2, PropertiesUtilManager.getPropertiesValue("languageName"));
             int updatedRow = preparedStatementFoRExecuteUpdate.executeUpdate();
             if (updatedRow > 0) {
-                Set<WorldLanguagesEntity> set = getLanguageByName();
-                Log.info(set.toString());
-                return set;
+
+                return getLanguageByName();
             } else {
                 languages = new CopyOnWriteArraySet<>();
                 return languages;
@@ -185,7 +174,7 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
             Set<WorldLanguagesEntity> set = getCityByLanguageAndCountry(PropertiesUtilManager.getPropertiesValue("languageName"), PropertiesUtilManager.getPropertiesValue("countryName1"));
             Log.info("Testing : " + set);
 
-            if (set.size() == 0) {
+            if (Objects.requireNonNull(set).isEmpty()) {
                 preparedStatementFoRExecuteUpdate.executeUpdate();
                 added = true;
                 languages = getCityByLanguageAndCountry(PropertiesUtilManager.getPropertiesValue("languageName"), PropertiesUtilManager.getPropertiesValue("countryName1"));
@@ -218,17 +207,16 @@ public class WorldLanguagesEntity extends WorldLanguagesExecutors implements Cal
         };
     }
 
-    private Set<WorldLanguagesEntity> addDatFromDBToList(boolean isResultSet) throws SQLException {
+    private Set<WorldLanguagesEntity> addDatFromDBToList() throws SQLException {
         languages = new ConcurrentSkipListSet<>();
-        if (isResultSet) {
-            ResultSet set = preparedStatementFoRResultSet.executeQuery();
+
+        ResultSet set = preparedStatementFoRResultSet.executeQuery();
             while (set.next()) {
                 if (set.getObject(3).toString().charAt(0) == 'T')
                     languages.add(new WorldLanguagesEntity(set.getString(1), set.getString(2), true));
                 else
                     languages.add(new WorldLanguagesEntity(set.getString(1), set.getString(2), false));
             }
-        }
         Log.info(languages.toString());
         return languages;
     }

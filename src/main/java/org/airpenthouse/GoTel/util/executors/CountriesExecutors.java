@@ -1,24 +1,22 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.entities.country.CountriesEntity;
 import org.airpenthouse.GoTel.services.country.CountriesService;
 import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
-@Component
+
 public class CountriesExecutors extends CountApiUsers {
     private final ExecutorService executeCountries;
     @Getter
-    @Autowired
-    private CountriesMapper mapper;
+    @Setter
+    private static CountriesMapper mapper;
 
     protected CountriesExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
@@ -52,19 +50,19 @@ public class CountriesExecutors extends CountApiUsers {
         return executeCountriesEntity();
     }
 
-    protected Set<CountriesRequest> initializeCountriesService() {
+    public Set<CountriesRequest> initializeCountriesService() {
         return executeCountriesServices();
     }
 
     private Set<CountriesEntity> implCountriesEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesEntity>> futureCollection;
-        futureCollection = executeCountries.submit(CountriesEntity.getInstance());
+        futureCollection = executeCountries.submit(new CountriesEntity());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
     private Set<CountriesRequest> implCountriesServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesRequest>> futureCollection;
-        futureCollection = executeCountries.submit(CountriesService.getInstance());
+        futureCollection = executeCountries.submit(new CountriesService());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 

@@ -11,22 +11,10 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 @Service
 public class CitiesService extends CitiesExecutors implements Callable<Set<CitiesRequest>> {
-    private static CitiesService instance;
 
-    public final CitiesMapper citiesMapper;
+    public CitiesMapper citiesMapper;
 
     public static String SERVICE_TRIGGER = null;
-
-    protected CitiesService() {
-        citiesMapper = getMapper();
-    }
-
-    public static CitiesService getInstance() {
-        if (instance == null) {
-            instance = new CitiesService();
-        }
-        return instance;
-    }
 
     public Set<CitiesRequest> getAllCities() {
         CitiesEntity.QUERY_HANDLE = "GET_ALL_CITIES_DATA";
@@ -69,6 +57,7 @@ public class CitiesService extends CitiesExecutors implements Callable<Set<Citie
 
     @Override
     public Set<CitiesRequest> call() {
+        citiesMapper = CitiesExecutors.getMapper();
         return switch (SERVICE_TRIGGER) {
             case "GET_ALL_CITIES_DATA" -> this.getAllCities();
             case "ADD_CITY" -> this.insertCities();

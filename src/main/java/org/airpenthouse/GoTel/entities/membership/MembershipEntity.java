@@ -2,11 +2,12 @@ package org.airpenthouse.GoTel.entities.membership;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.MembershipExecutor;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,31 +17,33 @@ import java.util.concurrent.*;
 
 @ToString
 @AllArgsConstructor
-public class MembershipEntity extends MembershipExecutor implements Callable<Set<MembershipEntity>> {
+public final class MembershipEntity extends MembershipExecutor implements Callable<Set<MembershipEntity>> {
 
-    private static final MembershipEntity INSTANCE = new MembershipEntity();
     @Getter
     private String memberName, memberEmailAddress, memberToken;
     @Getter
     private int memberId, membershipStatus, privilegeId;
     @Getter
+    @Setter
     private LocalDateTime registeredDate;
-    private String insertMemberQuery, getAllMembersQuery, getMemberByName, getMemberByToken, updateMembershipStatus, updateMembershipToken;
+    private final String insertMemberQuery, getAllMembersQuery, getMemberByName, getMemberByToken, updateMembershipStatus, updateMembershipToken;
     private PreparedStatement preparedStatementResultSet, preparedStatementUpdateQuery;
+
 
     public static String entityHandle;
 
-    private MembershipEntity() {
+    @Autowired
+    public MembershipEntity() {
         this.getAllMembersQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllMembers");
         this.insertMemberQuery = PropertiesUtilManager.getPropertiesValue("jdbc.add.insertMembers");
         this.getMemberByToken = PropertiesUtilManager.getPropertiesValue("jdbc.query.getMemberByToken");
-        this.getAllMembersQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllMembers");
         this.getMemberByName = PropertiesUtilManager.getPropertiesValue("jdbc.query.getMemberByName");
         this.updateMembershipStatus = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateMembershipStatus");
         this.updateMembershipToken = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateMemberToken");
     }
 
     private MembershipEntity(String memberName, String memberEmailAddress, int memberId, String memberToken, int membershipStatus) {
+        this();
         this.memberName = memberName;
         this.memberEmailAddress = memberEmailAddress;
         this.memberId = memberId;
@@ -49,13 +52,10 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
         this.registeredDate = LocalDateTime.now();
     }
 
-    public static MembershipEntity getInstance() {
-        return INSTANCE;
-    }
 
     private Set<MembershipEntity> getAllMembers() {
         try {
-            this.preparedStatementResultSet = super.databaseConfig(this.getAllMembersQuery);
+            this.preparedStatementResultSet = databaseConfig(this.getAllMembersQuery);
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
@@ -65,7 +65,7 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
 
     private Set<MembershipEntity> getMemberByName() {
         try {
-            this.preparedStatementResultSet = super.databaseConfig(this.getMemberByName);
+            this.preparedStatementResultSet = databaseConfig(this.getMemberByName);
             this.preparedStatementResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("memberName"));
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
@@ -75,14 +75,13 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
 
     private Set<MembershipEntity> getMemberByToken() {
         try {
-            this.preparedStatementResultSet = super.databaseConfig(this.getMemberByToken);
+            this.preparedStatementResultSet = databaseConfig(this.getMemberByToken);
             this.preparedStatementResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("membershipToken"));
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     private Set<MembershipEntity> addDataFromDBToList() throws SQLException {
         Set<MembershipEntity> list = new CopyOnWriteArraySet<>();
@@ -99,12 +98,10 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
     private Set<MembershipEntity> updateMembershipToken() {
         try {
             this.preparedStatementUpdateQuery = databaseConfig(this.updateMembershipToken);
-            this.preparedStatementUpdateQuery.setString(1, PropertiesUtilManager.getPropertiesValue("membershipToken"));
-            this.preparedStatementUpdateQuery.setString(2, PropertiesUtilManager.getPropertiesValue("modifiedDate"));
-            this.preparedStatementUpdateQuery.setString(3, PropertiesUtilManager.getPropertiesValue("memberName"));
+            this.preparedStatementUpdateQuery.setString(1, getEntity().getMemberToken());
+            this.preparedStatementUpdateQuery.setString(2, getEntity().getRegisteredDate().toString());
+            this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberName());
             return validateUpdatingOrInserting();
-
-
         } catch (ExecutionException | TimeoutException | SQLException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -113,12 +110,12 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
     private Set<MembershipEntity> registerMember() {
         try {
             this.preparedStatementUpdateQuery = databaseConfig(this.insertMemberQuery);
-            this.preparedStatementUpdateQuery.setInt(1, Integer.parseInt(PropertiesUtilManager.getPropertiesValue("privilegeId")));
-            this.preparedStatementUpdateQuery.setInt(5, Integer.parseInt(PropertiesUtilManager.getPropertiesValue("membershipStatus")));
-            this.preparedStatementUpdateQuery.setString(6, PropertiesUtilManager.getPropertiesValue("registrationDate"));
-            this.preparedStatementUpdateQuery.setString(3, PropertiesUtilManager.getPropertiesValue("membershipEmailAddress"));
-            this.preparedStatementUpdateQuery.setString(4, PropertiesUtilManager.getPropertiesValue("membershipToken"));
-            this.preparedStatementUpdateQuery.setString(2, PropertiesUtilManager.getPropertiesValue("memberName"));
+            this.preparedStatementUpdateQuery.setInt(1, getEntity().getPrivilegeId());
+            this.preparedStatementUpdateQuery.setInt(5, getEntity().getMembershipStatus());
+            this.preparedStatementUpdateQuery.setString(6, getEntity().getRegisteredDate().toString());
+            this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberEmailAddress());
+            this.preparedStatementUpdateQuery.setString(4, getEntity().getMemberToken());
+            this.preparedStatementUpdateQuery.setString(2, getEntity().getMemberName());
             insertData = true;
             return validateUpdatingOrInserting();
         } catch (ExecutionException | TimeoutException | SQLException | InterruptedException e) {
@@ -168,9 +165,9 @@ public class MembershipEntity extends MembershipExecutor implements Callable<Set
     private Set<MembershipEntity> updateMembershipStatus() {
         try {
             this.preparedStatementUpdateQuery = databaseConfig(this.updateMembershipStatus);
-            this.preparedStatementUpdateQuery.setString(1, PropertiesUtilManager.getPropertiesValue("membershipStatus"));
-            this.preparedStatementUpdateQuery.setString(2, PropertiesUtilManager.getPropertiesValue("modifiedDate"));
-            this.preparedStatementUpdateQuery.setString(3, PropertiesUtilManager.getPropertiesValue("memberName"));
+            this.preparedStatementUpdateQuery.setInt(1, getEntity().getMembershipStatus());
+            this.preparedStatementUpdateQuery.setString(2, getEntity().getEntity().getRegisteredDate().toString());
+            this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberName());
             return validateUpdatingOrInserting();
         } catch (ExecutionException | TimeoutException | SQLException | InterruptedException e) {
             throw new RuntimeException(e);

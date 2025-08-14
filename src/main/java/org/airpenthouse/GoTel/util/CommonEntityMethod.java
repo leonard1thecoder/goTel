@@ -1,16 +1,12 @@
 package org.airpenthouse.GoTel.util;
 
-import org.springframework.stereotype.Component;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.*;
-
 import static org.airpenthouse.GoTel.util.Connect.getInstance;
 
-@Component
 public class CommonEntityMethod {
 
     private final String jdbcQueryFindCountryCode;
@@ -19,7 +15,7 @@ public class CommonEntityMethod {
         jdbcQueryFindCountryCode = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryCodeByCountry");
     }
 
-    protected String getCountryCodeByCountryName(String countryName) {
+    public String getCountryCodeByCountryName(String countryName) {
         PreparedStatement ps;
         try {
             ps = databaseConfig(jdbcQueryFindCountryCode);
@@ -36,7 +32,7 @@ public class CommonEntityMethod {
         return null;
     }
 
-    protected PreparedStatement databaseConfig(String query) throws ExecutionException, InterruptedException, TimeoutException, SQLException {
+    public PreparedStatement databaseConfig(String query) throws ExecutionException, InterruptedException, TimeoutException, SQLException {
         Future<Connection> connect = getInstance().getDB_data();
         assert connect != null;
         return connect.get(15, TimeUnit.SECONDS).prepareStatement(query);
