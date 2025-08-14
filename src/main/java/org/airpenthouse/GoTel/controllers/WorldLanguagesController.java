@@ -8,6 +8,7 @@ import org.airpenthouse.GoTel.dtos.languages.UpdateLanguageStatus;
 import org.airpenthouse.GoTel.services.language.WorldLanguagesService;
 import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors;
 import org.airpenthouse.GoTel.util.mappers.LanguageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,22 +16,24 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Set;
 
+
 @RestController
 @RequestMapping("/api/worldLanguages")
-public class WorldLanguagesController extends WorldLanguagesService {
+public class WorldLanguagesController {
+
     @Autowired
     public LanguageMapper mapper;
     private Set<LanguageRequest> entities;
-
     @Autowired
-    public WorldLanguagesController() {
-        mapper = getLanguageMapper();
-    }
+    public WorldLanguagesService executor;
+
+
 
     @GetMapping("/findAllLanguages")
     public ResponseEntity<Set<LanguageRequest>> getAllLanguages() {
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "FIND_ALL_LANGUAGES";
-        entities = initializeWorldLanguageService();
+        entities = executor.initializeWorldLanguageService(true, null);
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -40,9 +43,12 @@ public class WorldLanguagesController extends WorldLanguagesService {
 
     @GetMapping("/findLanguageByName/{languageName}")
     public ResponseEntity<Set<LanguageRequest>> getLanguageByName(@PathVariable String languageName) {
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "FIND_LANGUAGE_BY_NAME";
         PropertiesUtilManager.setProperties("languageName", languageName);
-        entities = initializeWorldLanguageService();
+        Log.info("buhbuhbuhhb" + mapper + "\n" + executor);
+        executor.setService(executor);
+        entities = executor.initializeWorldLanguageService(true, null);
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -52,9 +58,11 @@ public class WorldLanguagesController extends WorldLanguagesService {
 
     @GetMapping("/findLanguagesByCountryName/{countryName}")
     public ResponseEntity<Set<LanguageRequest>> getLanguageByCountry(@PathVariable String countryName) {
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "FIND_LANGUAGES_BY_COUNTRY";
         PropertiesUtilManager.setProperties("countryName1", countryName);
-        entities = initializeWorldLanguageService();
+        executor.setService(executor);
+        entities = executor.initializeWorldLanguageService(true, null);
 
         if (entities.isEmpty())
             return ResponseEntity.notFound().build();
@@ -65,12 +73,14 @@ public class WorldLanguagesController extends WorldLanguagesService {
 
     @PutMapping("/updateLanguageName")
     public ResponseEntity<Void> updateLanguageName(@RequestBody UpdateLanguageRequest request) {
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_NAME";
         var dto = mapper.toWorldEntity(request);
         Log.info(dto.getLanguageName() + " " + dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("newLanguageName", dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
-        entities = initializeWorldLanguageService();
+        executor.setService(executor);
+        entities = executor.initializeWorldLanguageService(false, dto);
 
         if (entities == null)
             return ResponseEntity.badRequest().build();
@@ -82,11 +92,13 @@ public class WorldLanguagesController extends WorldLanguagesService {
 
     @PutMapping("/updateLanguageStatus")
     public ResponseEntity<Void> updateLanguageStatus(@RequestBody UpdateLanguageStatus request) {
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_STATUS";
         var dto = mapper.toWorldEntity(request);
         PropertiesUtilManager.setProperties("newWorldLanguageStatus", String.valueOf(dto.getLanguageStatus()));
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
-        entities = initializeWorldLanguageService();
+        executor.setService(executor);
+        entities = executor.initializeWorldLanguageService(true, dto);
 
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
@@ -97,19 +109,20 @@ public class WorldLanguagesController extends WorldLanguagesService {
     @PostMapping("/insertLanguage")
     public ResponseEntity<Set<LanguageRequest>> insertLanguage(@RequestBody InsertWorldLanguageRequest request, UriComponentsBuilder uriBuilder) {
         WorldLanguagesService.SERVICE_HANDLER = "ADD_LANGUAGE";
-
+        WorldLanguagesExecutors.setLanguageMapper(mapper);
         var entity = mapper.toWorldEntity(request);
         PropertiesUtilManager.setProperties("countryName1", entity.getCountryName());
         PropertiesUtilManager.setProperties("languageName", entity.getLanguageName());
         Log.info(entity.getCountryName());
         Log.info(entity.getLanguageName());
         // creating status 201
-        entities = initializeWorldLanguageService();
+        executor.setService(executor);
+        entities = executor.initializeWorldLanguageService(false, entity);
         if (entities.isEmpty())
             return ResponseEntity.badRequest().build();
         else {
             var uri = uriBuilder.path("/api/worldLanguages/findLanguageByName/{languageName}").buildAndExpand(entity.getLanguageName()).toUri();
-            return ResponseEntity.created(uri).body(initializeWorldLanguageService());
+            return ResponseEntity.created(uri).body(entities);
         }
     }
 }
