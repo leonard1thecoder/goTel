@@ -27,5 +27,5 @@ public class MembershipRequest {
     private LocalDateTime registeredDate;
     @JsonIgnore
     @JsonProperty("_membership_token")
-    private String token;
+    private String memberToken;
 }

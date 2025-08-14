@@ -17,7 +17,7 @@ public class RegisterMemberRequest {
     @JsonProperty("_member_email")
     private String memberEmailAddress;
     @JsonProperty("_membership_token")
-    private String token;
+    private String memberToken;
     @JsonProperty("_member_id")
     private int memberId;
     @JsonProperty("_membership_status")
