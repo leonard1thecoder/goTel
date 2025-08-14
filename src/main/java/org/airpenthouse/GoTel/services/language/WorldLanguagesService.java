@@ -4,6 +4,7 @@ import org.airpenthouse.GoTel.dtos.languages.LanguageRequest;
 import org.airpenthouse.GoTel.entities.languanges.WorldLanguagesEntity;
 import org.airpenthouse.GoTel.util.executors.WorldLanguagesExecutors;
 import org.airpenthouse.GoTel.util.mappers.LanguageMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -11,41 +12,35 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class WorldLanguagesService extends WorldLanguagesExecutors implements Callable<Set<LanguageRequest>> {
+public final class WorldLanguagesService extends WorldLanguagesExecutors implements Callable<Set<LanguageRequest>> {
 
-    private static WorldLanguagesService instance;
-    private final LanguageMapper mapper;
+    private LanguageMapper mapper;
     public static String SERVICE_HANDLER;
 
-    protected WorldLanguagesService() {
-        mapper = getLanguageMapper();
+    @Autowired
+    public WorldLanguagesService() {
+
     }
 
-    public static WorldLanguagesService getInstance() {
-        if (instance == null) {
-            instance = new WorldLanguagesService();
-        }
-
-        return instance;
-    }
 
     private Set<LanguageRequest> getAllLanguages() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "FIND_ALL_LANGUAGES";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     private Set<LanguageRequest> getLanguageByName() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "FIND_LANGUAGE_BY_NAME";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     private Set<LanguageRequest> getLanguageByCountry() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "FIND_LANGUAGES_BY_COUNTRY";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     @Override
     public Set<LanguageRequest> call() {
+        mapper = WorldLanguagesExecutors.getLanguageMapper();
         return switch (SERVICE_HANDLER) {
             case "FIND_ALL_LANGUAGES" -> getAllLanguages();
             case "FIND_LANGUAGE_BY_NAME" -> getLanguageByName();
@@ -59,16 +54,16 @@ public class WorldLanguagesService extends WorldLanguagesExecutors implements Ca
 
     private Set<LanguageRequest> insertWorldLanguage() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "ADD_LANGUAGE";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     private Set<LanguageRequest> updateWorldLanguage() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "UPDATE_LANGUAGE_NAME";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     private Set<LanguageRequest> updateWorldLanguageStatus() {
         WorldLanguagesEntity.ENTITY_TRIGGER = "UPDATE_LANGUAGE_STATUS";
-        return initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
+        return super.initializeWorldLanguagesEntity().parallelStream().map(mapper::mapper).collect(Collectors.toSet());
     }
 }

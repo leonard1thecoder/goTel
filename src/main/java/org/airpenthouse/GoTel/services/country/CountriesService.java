@@ -14,20 +14,8 @@ import static org.airpenthouse.GoTel.entities.country.CountriesEntity.ENTITY_TRI
 @Service
 public class CountriesService extends CountriesExecutors implements Callable<Set<CountriesRequest>> {
 
-    private static CountriesService instance;
     public static String SERVICE_HANDLER;
-    private final CountriesMapper mapper;
-
-    protected CountriesService() {
-        mapper = getMapper();
-    }
-
-    public static CountriesService getInstance() {
-        if (instance == null) {
-            instance = new CountriesService();
-        }
-        return instance;
-    }
+    private CountriesMapper mapper;
 
     private Set<CountriesRequest> getAllCountries() {
         ENTITY_TRIGGER = "FIND_ALL_COUNTRIES";
