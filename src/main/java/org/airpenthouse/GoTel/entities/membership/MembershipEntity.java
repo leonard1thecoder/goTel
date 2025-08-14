@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.TokenEncryptor;
 import org.airpenthouse.GoTel.util.executors.MembershipExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.PreparedStatement;
@@ -20,7 +21,10 @@ import java.util.concurrent.*;
 public final class MembershipEntity extends MembershipExecutor implements Callable<Set<MembershipEntity>> {
 
     @Getter
-    private String memberName, memberEmailAddress, memberToken;
+    private String memberName, memberEmailAddress;
+    @Getter
+    @Setter
+    private String memberToken;
     @Getter
     private int memberId, membershipStatus, privilegeId;
     @Getter
@@ -76,7 +80,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
     private Set<MembershipEntity> getMemberByToken() {
         try {
             this.preparedStatementResultSet = databaseConfig(this.getMemberByToken);
-            this.preparedStatementResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("membershipToken"));
+            this.preparedStatementResultSet.setString(1, TokenEncryptor.decoder(PropertiesUtilManager.getPropertiesValue("membershipToken")));
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
@@ -87,7 +91,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
         Set<MembershipEntity> list = new CopyOnWriteArraySet<>();
         ResultSet set = preparedStatementResultSet.executeQuery();
         while (set.next()) {
-            list.add(new MembershipEntity(set.getString(2), set.getString(3), set.getInt(1), set.getString(4), set.getInt(5)));
+            list.add(new MembershipEntity(set.getString(2), set.getString(3), set.getInt(1), TokenEncryptor.decoder(set.getString(4)), set.getInt(5)));
         }
         set.close();
 
@@ -98,7 +102,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
     private Set<MembershipEntity> updateMembershipToken() {
         try {
             this.preparedStatementUpdateQuery = databaseConfig(this.updateMembershipToken);
-            this.preparedStatementUpdateQuery.setString(1, getEntity().getMemberToken());
+            this.preparedStatementUpdateQuery.setString(1, TokenEncryptor.encoder(getEntity().getMemberToken()));
             this.preparedStatementUpdateQuery.setString(2, getEntity().getRegisteredDate().toString());
             this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberName());
             return validateUpdatingOrInserting();
@@ -114,7 +118,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
             this.preparedStatementUpdateQuery.setInt(5, getEntity().getMembershipStatus());
             this.preparedStatementUpdateQuery.setString(6, getEntity().getRegisteredDate().toString());
             this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberEmailAddress());
-            this.preparedStatementUpdateQuery.setString(4, getEntity().getMemberToken());
+            this.preparedStatementUpdateQuery.setString(4, TokenEncryptor.encoder(getEntity().getMemberToken()));
             this.preparedStatementUpdateQuery.setString(2, getEntity().getMemberName());
             insertData = true;
             return validateUpdatingOrInserting();
