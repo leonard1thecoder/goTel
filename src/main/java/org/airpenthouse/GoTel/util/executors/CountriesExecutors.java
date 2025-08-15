@@ -6,24 +6,38 @@ import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.entities.country.CountriesEntity;
 import org.airpenthouse.GoTel.services.country.CountriesService;
 import org.airpenthouse.GoTel.util.CountApiUsers;
+import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
+
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.*;
 
 
 public class CountriesExecutors extends CountApiUsers {
-    private final ExecutorService executeCountries;
+    private ExecutorService executeCountries;
     @Getter
     @Setter
     private static CountriesMapper mapper;
 
     protected CountriesExecutors() {
-        final var noProcesses = Runtime.getRuntime().availableProcessors();
-        executeCountries = Executors.newFixedThreadPool(noProcesses);
+        super();
     }
 
 
+    private ExecutorService determineNoThreadToUse() {
+        /*
+            Members with registered successful uses more threads than non membership
+         */
+        if (checkMemberShipStatusAndTokenMatch()) {
+            final var noProcesses = Runtime.getRuntime().availableProcessors();
+            executeCountries = Executors.newFixedThreadPool(noProcesses);
+        } else {
+            final var noProcesses = Runtime.getRuntime().availableProcessors() * 2;
+            executeCountries = Executors.newFixedThreadPool(noProcesses);
+        }
+        return executeCountries;
+    }
     private Set<CountriesEntity> executeCountriesEntity() {
         try {
             var set = this.implCountriesEntityExecution();
@@ -36,7 +50,7 @@ public class CountriesExecutors extends CountApiUsers {
         }
     }
 
-    private Set<CountriesRequest> executeCountriesServices() {
+    private Set<? extends CountriesRequestCombiner> executeCountriesServices() {
         try {
             return this.implCountriesServiceExecution();
         } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
@@ -50,19 +64,19 @@ public class CountriesExecutors extends CountApiUsers {
         return executeCountriesEntity();
     }
 
-    public Set<CountriesRequest> initializeCountriesService() {
+    public Set<? extends CountriesRequestCombiner> initializeCountriesService() {
         return executeCountriesServices();
     }
 
     private Set<CountriesEntity> implCountriesEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<CountriesEntity>> futureCollection;
-        futureCollection = executeCountries.submit(new CountriesEntity());
+        futureCollection = determineNoThreadToUse().submit(new CountriesEntity());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
-    private Set<CountriesRequest> implCountriesServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
-        Future<Set<CountriesRequest>> futureCollection;
-        futureCollection = executeCountries.submit(new CountriesService());
+    private Set<? extends CountriesRequestCombiner> implCountriesServiceExecution() throws ExecutionException, InterruptedException, TimeoutException {
+        Future<Set<? extends CountriesRequestCombiner>> futureCollection;
+        futureCollection = determineNoThreadToUse().submit(new CountriesService());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
