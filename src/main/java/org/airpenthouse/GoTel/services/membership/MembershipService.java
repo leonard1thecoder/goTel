@@ -47,11 +47,17 @@ public final class MembershipService extends MembershipExecutor implements Calla
         return switch (serviceHandler) {
             case "GET_ALL_MEMBERS" -> getAllMembers();
             case "GET_MEMBER_BY_NAME" -> getMemberByName();
+            case "GET_MEMBER_BY_USERNAME" -> getMemberByUsername();
             case "UPDATE_MEMBERSHIP_TOKEN" -> updateMembershipToken();
             case "UPDATE_MEMBERSHIP_STATUS" -> updateMembershipStatus();
             case "REGISTER_MEMBER" -> registerMember();
             default -> null;
         };
+    }
+
+    private Set<MembershipRequest> getMemberByUsername() {
+        MembershipEntity.entityHandle = "GET_ALL_MEMBERS";
+        return super.initializeMembershipEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
     }
 
 }
