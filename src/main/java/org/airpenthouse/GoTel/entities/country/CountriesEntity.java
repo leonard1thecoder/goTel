@@ -23,6 +23,28 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
     private String countryRegion;
     @Getter
     private int population;
+    @Getter
+    private String continent;
+    @Getter
+    private double surfaceArea;
+    @Getter
+    private int indepYear;
+    @Getter
+    private double lifeExpectancy;
+    @Getter
+    private double gnp;
+    @Getter
+    private double oldGnp;
+    @Getter
+    private String localName;
+    @Getter
+    private String governmentForm;
+    @Getter
+    private String headOfState;
+    @Getter
+    private String capital;
+    @Getter
+    private String code;
 
 
     private Set<CountriesEntity> countries;
@@ -36,6 +58,28 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
         jdbcQueryFindCountryByRegion = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountriesByRegion");
     }
 
+    private CountriesEntity(String countryName, String countryRegion, int population) {
+        this.countryName = countryName;
+        this.countryRegion = countryRegion;
+        this.population = population;
+    }
+
+    public CountriesEntity(String countryName, String countryRegion, int population, String continent, double surfaceArea, int indepYear, double lifeExpectancy, double gnp, double oldGnp, String localName, String governmentForm, String headOfState, String capital, String code) {
+        this.countryName = countryName;
+        this.countryRegion = countryRegion;
+        this.population = population;
+        this.continent = continent;
+        this.surfaceArea = surfaceArea;
+        this.indepYear = indepYear;
+        this.lifeExpectancy = lifeExpectancy;
+        this.gnp = gnp;
+        this.oldGnp = oldGnp;
+        this.localName = localName;
+        this.governmentForm = governmentForm;
+        this.headOfState = headOfState;
+        this.capital = capital;
+        this.code = code;
+    }
 
     private Set<CountriesEntity> getCountryByName() {
         PreparedStatement ps;
@@ -115,27 +159,19 @@ public final class CountriesEntity extends CountriesExecutors implements Callabl
         };
     }
 
-
-    //The find country by Country COde to be replaced by JOINED QUERY
-
-
     private Set<CountriesEntity> addDataFromDbToSet(ResultSet set) throws SQLException {
         countries = new CopyOnWriteArraySet<>();
         while (set.next()) {
-
-            countries.add(new CountriesEntity(set.getString(2), set.getString(4), set.getInt(7)));
-
+            if (checkMemberShipStatusAndTokenMatch()) {
+                countries.add(new CountriesEntity(set.getString(2), set.getString(4), set.getInt(7)));
+            } else {
+                countries.add(new CountriesEntity(set.getString(2), set.getString(4), set.getInt(7), set.getString(3), set.getDouble(5), set.getInt(6), set.getDouble(8), set.getDouble(9), set.getDouble(10), set.getString(11), set.getString(12), set.getString(13), set.getString(14), set.getString(15)));
+            }
         }
         System.out.println(countries);
         return countries;
     }
 
-    private CountriesEntity(String countryName, String countryRegion, int population) {
-        //	this();
-        this.countryName = countryName;
-        this.countryRegion = countryRegion;
-        this.population = population;
-    }
 
     @Override
     public String toString() {
