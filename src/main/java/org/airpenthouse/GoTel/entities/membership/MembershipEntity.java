@@ -30,7 +30,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
     @Getter
     @Setter
     private LocalDateTime registeredDate;
-    private final String insertMemberQuery, getAllMembersQuery, getMemberByName, getMemberByToken, updateMembershipStatus, updateMembershipToken;
+    private final String insertMemberQuery, getAllMembersQuery, getMemberByName, getMemberByUsername, getMemberByToken, updateMembershipStatus, updateMembershipToken;
     private PreparedStatement preparedStatementResultSet, preparedStatementUpdateQuery;
 
 
@@ -38,6 +38,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
 
     @Autowired
     public MembershipEntity() {
+        this.getMemberByUsername = PropertiesUtilManager.getPropertiesValue("jdbc.query.getMemberByUsername");
         this.getAllMembersQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllMembers");
         this.insertMemberQuery = PropertiesUtilManager.getPropertiesValue("jdbc.add.insertMembers");
         this.getMemberByToken = PropertiesUtilManager.getPropertiesValue("jdbc.query.getMemberByToken");
@@ -77,9 +78,19 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
         }
     }
 
-    private Set<MembershipEntity> getMemberByToken() {
+    public Set<MembershipEntity> getMemberByToken() {
         try {
             this.preparedStatementResultSet = databaseConfig(this.getMemberByToken);
+            this.preparedStatementResultSet.setString(1, TokenEncryptor.decoder(PropertiesUtilManager.getPropertiesValue("membershipToken")));
+            return addDataFromDBToList();
+        } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Set<MembershipEntity> getMemberByUsername() {
+        try {
+            this.preparedStatementResultSet = databaseConfig(this.getMemberByUsername);
             this.preparedStatementResultSet.setString(1, TokenEncryptor.decoder(PropertiesUtilManager.getPropertiesValue("membershipToken")));
             return addDataFromDBToList();
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
@@ -105,7 +116,9 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
             this.preparedStatementUpdateQuery.setString(1, TokenEncryptor.encoder(getEntity().getMemberToken()));
             this.preparedStatementUpdateQuery.setString(2, getEntity().getRegisteredDate().toString());
             this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberName());
-            return validateUpdatingOrInserting();
+            validateUpdatingOrInserting();
+            return updateMembershipStatus();
+
         } catch (ExecutionException | TimeoutException | SQLException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -169,7 +182,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
     private Set<MembershipEntity> updateMembershipStatus() {
         try {
             this.preparedStatementUpdateQuery = databaseConfig(this.updateMembershipStatus);
-            this.preparedStatementUpdateQuery.setInt(1, getEntity().getMembershipStatus());
+            this.preparedStatementUpdateQuery.setInt(1, 1);
             this.preparedStatementUpdateQuery.setString(2, getEntity().getEntity().getRegisteredDate().toString());
             this.preparedStatementUpdateQuery.setString(3, getEntity().getMemberName());
             return validateUpdatingOrInserting();
@@ -184,6 +197,7 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
             case "GET_ALL_MEMBERS" -> getAllMembers();
             case "GET_MEMBER_BY_NAME" -> getMemberByName();
             case "GET_MEMBER_BY_TOKEN" -> getMemberByToken();
+            case "GET_MEMBER_BY_USERNAME" -> getMemberByUsername();
             case "UPDATE_MEMBERSHIP_TOKEN" -> updateMembershipToken();
             case "UPDATE_MEMBERSHIP_STATUS" -> updateMembershipStatus();
             case "REGISTER_MEMBER" -> registerMember();

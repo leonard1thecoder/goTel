@@ -4,6 +4,7 @@ package org.airpenthouse.GoTel.controllers;
 import org.airpenthouse.GoTel.dtos.membership.MembershipRequest;
 import org.airpenthouse.GoTel.dtos.membership.RegisterMemberRequest;
 import org.airpenthouse.GoTel.dtos.membership.UpdateMembershipStatus;
+import org.airpenthouse.GoTel.dtos.membership.UpdateTokenRequest;
 import org.airpenthouse.GoTel.entities.membership.MembershipEntity;
 import org.airpenthouse.GoTel.services.membership.MembershipService;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/membership")
@@ -56,7 +58,7 @@ public class MembershipController {
     }
 
     @PutMapping("/updateMembershipToken")
-    private ResponseEntity<Void> updateMembershipToken(@RequestBody UpdateMembershipStatus request) {
+    private ResponseEntity<Void> updateMembershipToken(@RequestBody UpdateTokenRequest request) {
         MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "UPDATE_MEMBERSHIP_TOKEN";
         MembershipEntity entity = mapper.toEntity(request);
@@ -74,6 +76,21 @@ public class MembershipController {
         MembershipExecutor.setMapper(mapper);
         MembershipService.serviceHandler = "GET_MEMBER_BY_NAME";
         PropertiesUtilManager.setProperties("memberName", memberName);
+
+        var set = executor.initializeMembershipService(true, null);
+
+        if (set.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(set);
+        }
+    }
+
+    @GetMapping("/findMemberByUsername/{memberUsername}")
+    private ResponseEntity<Set<MembershipRequest>> getMemberByUsername(@PathVariable String memberUsername) {
+        MembershipExecutor.setMapper(mapper);
+        MembershipService.serviceHandler = "GET_MEMBER_BY_NAME";
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
 
         var set = executor.initializeMembershipService(true, null);
 
