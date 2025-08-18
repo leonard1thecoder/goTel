@@ -72,7 +72,7 @@ public class WorldLanguagesController {
 
 
     @PostMapping("/{memberUsername}/updateLanguageName")
-    public ResponseEntity<Void> updateLanguageName(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateLanguageRequest request) {
+    public ResponseEntity<Void> updateLanguageName(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken, @RequestBody UpdateLanguageRequest request) {
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_NAME";
         var dto = mapper.toWorldEntity(request);
@@ -96,7 +96,7 @@ public class WorldLanguagesController {
     }
 
     @PostMapping("/{memberToken}/updateLanguageStatus")
-    public ResponseEntity<Void> updateLanguageStatus(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateLanguageStatus request) {
+    public ResponseEntity<Void> updateLanguageStatus(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken, @RequestBody UpdateLanguageStatus request) {
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_STATUS";
         var dto = mapper.toWorldEntity(request);
@@ -119,7 +119,7 @@ public class WorldLanguagesController {
     }
 
     @PostMapping("{memberToken}/insertLanguage")
-    public ResponseEntity<Set<LanguageRequest>> insertLanguage(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody InsertWorldLanguageRequest request, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<Set<LanguageRequest>> insertLanguage(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken, @RequestBody InsertWorldLanguageRequest request, UriComponentsBuilder uriBuilder) {
         WorldLanguagesService.SERVICE_HANDLER = "ADD_LANGUAGE";
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         var entity = mapper.toWorldEntity(request);

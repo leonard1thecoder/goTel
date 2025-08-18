@@ -58,7 +58,7 @@ public class CitiesController {
     }
 
     @PostMapping("{memberUsername}/insertCity")
-    public ResponseEntity<Set<CitiesRequest>> insertCities(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody CreateNewCityRequest request, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<Set<CitiesRequest>> insertCities(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken, @RequestBody CreateNewCityRequest request, UriComponentsBuilder uriBuilder) {
         CitiesService.SERVICE_TRIGGER = "ADD_CITY";
         CitiesExecutors.setMapper(citiesMapper);
         var cityRequest = citiesMapper.toCitiesEntity(request);
@@ -110,7 +110,7 @@ public class CitiesController {
     }
 
     @PostMapping("/{memberUsername}/updateCityName")
-    public ResponseEntity<Void> updateCityName(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateCityNameRequest request) {
+    public ResponseEntity<Void> updateCityName(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken, @RequestBody UpdateCityNameRequest request) {
         CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
         CitiesExecutors.setMapper(citiesMapper);
         var dto = citiesMapper.toCitiesEntity(request);
@@ -129,7 +129,7 @@ public class CitiesController {
 
 
     @PostMapping("{memberUsername}/updateCityPopulation")
-    public ResponseEntity<Void> updateCitiesPopulation(@RequestHeader String memberToken, @PathVariable String memberUsername, @RequestBody UpdateCityPopulation request) {
+    public ResponseEntity<Void> updateCitiesPopulation(@RequestHeader(name = "x-auth-membership-token") String memberToken, @PathVariable String memberUsername, @RequestBody UpdateCityPopulation request) {
         CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
         CitiesExecutors.setMapper(citiesMapper);
         var dto = citiesMapper.toCitiesEntity(request);
