@@ -71,27 +71,32 @@ public class WorldLanguagesController {
     }
 
 
-    @PutMapping("/updateLanguageName")
-    public ResponseEntity<Void> updateLanguageName(@RequestBody UpdateLanguageRequest request) {
+    @PostMapping("/{memberUsername}/updateLanguageName")
+    public ResponseEntity<Void> updateLanguageName(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateLanguageRequest request) {
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_NAME";
         var dto = mapper.toWorldEntity(request);
         Log.info(dto.getLanguageName() + " " + dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("newLanguageName", dto.getNewLanguageName());
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
         executor.setService(executor);
         entities = executor.initializeWorldLanguageService(false, dto);
-
-        if (entities == null)
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            if (entities == null)
+                return ResponseEntity.badRequest().build();
+            if (entities.isEmpty())
+                return ResponseEntity.badRequest().build();
+            else
+                return ResponseEntity.noContent().build();
+        } else {
             return ResponseEntity.badRequest().build();
-        if (entities.isEmpty())
-            return ResponseEntity.badRequest().build();
-        else
-            return ResponseEntity.noContent().build();
+        }
     }
 
-    @PutMapping("/updateLanguageStatus")
-    public ResponseEntity<Void> updateLanguageStatus(@RequestBody UpdateLanguageStatus request) {
+    @PostMapping("/{memberToken}/updateLanguageStatus")
+    public ResponseEntity<Void> updateLanguageStatus(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateLanguageStatus request) {
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         WorldLanguagesService.SERVICE_HANDLER = "UPDATE_LANGUAGE_STATUS";
         var dto = mapper.toWorldEntity(request);
@@ -99,18 +104,27 @@ public class WorldLanguagesController {
         PropertiesUtilManager.setProperties("languageName", dto.getLanguageName());
         executor.setService(executor);
         entities = executor.initializeWorldLanguageService(true, dto);
-
-        if (entities.isEmpty())
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            if (entities == null)
+                return ResponseEntity.badRequest().build();
+            if (entities.isEmpty())
+                return ResponseEntity.badRequest().build();
+            else
+                return ResponseEntity.noContent().build();
+        } else {
             return ResponseEntity.badRequest().build();
-        else
-            return ResponseEntity.noContent().build();
+        }
     }
 
-    @PostMapping("/insertLanguage")
-    public ResponseEntity<Set<LanguageRequest>> insertLanguage(@RequestBody InsertWorldLanguageRequest request, UriComponentsBuilder uriBuilder) {
+    @PostMapping("{memberToken}/insertLanguage")
+    public ResponseEntity<Set<LanguageRequest>> insertLanguage(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody InsertWorldLanguageRequest request, UriComponentsBuilder uriBuilder) {
         WorldLanguagesService.SERVICE_HANDLER = "ADD_LANGUAGE";
         WorldLanguagesExecutors.setLanguageMapper(mapper);
         var entity = mapper.toWorldEntity(request);
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
         PropertiesUtilManager.setProperties("countryName1", entity.getCountryName());
         PropertiesUtilManager.setProperties("languageName", entity.getLanguageName());
         Log.info(entity.getCountryName());
@@ -118,11 +132,15 @@ public class WorldLanguagesController {
         // creating status 201
         executor.setService(executor);
         entities = executor.initializeWorldLanguageService(false, entity);
-        if (entities.isEmpty())
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            if (entities.isEmpty())
+                return ResponseEntity.badRequest().build();
+            else {
+                var uri = uriBuilder.path("/api/worldLanguages/findLanguageByName/{languageName}").buildAndExpand(entity.getLanguageName()).toUri();
+                return ResponseEntity.created(uri).body(entities);
+            }
+        } else {
             return ResponseEntity.badRequest().build();
-        else {
-            var uri = uriBuilder.path("/api/worldLanguages/findLanguageByName/{languageName}").buildAndExpand(entity.getLanguageName()).toUri();
-            return ResponseEntity.created(uri).body(entities);
         }
     }
 }
