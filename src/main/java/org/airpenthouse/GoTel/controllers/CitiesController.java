@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import java.util.Set;
 
 
@@ -56,19 +57,24 @@ public class CitiesController {
         }
     }
 
-    @PostMapping("/insertCity")
-    public ResponseEntity<Set<CitiesRequest>> insertCities(@RequestBody CreateNewCityRequest request, UriComponentsBuilder uriBuilder) {
+    @PostMapping("{memberUsername}/insertCity")
+    public ResponseEntity<Set<CitiesRequest>> insertCities(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody CreateNewCityRequest request, UriComponentsBuilder uriBuilder) {
         CitiesService.SERVICE_TRIGGER = "ADD_CITY";
         CitiesExecutors.setMapper(citiesMapper);
         var cityRequest = citiesMapper.toCitiesEntity(request);
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
         entities = executor.initializeCitiesService(false, cityRequest);
-
-        if (entities.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            if (entities.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            } else {
+                // creating status 201
+                var uri = uriBuilder.path("/api/cities/findCityByName/{cityName}").buildAndExpand(cityRequest.getCityName()).toUri();
+                return ResponseEntity.created(uri).body(entities);
+            }
         } else {
-            // creating status 201
-            var uri = uriBuilder.path("/api/cities/findCityByName/{cityName}").buildAndExpand(cityRequest.getCityName()).toUri();
-            return ResponseEntity.created(uri).body(entities);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -103,31 +109,43 @@ public class CitiesController {
         }
     }
 
-    @PutMapping("/updateCityName")
-    public ResponseEntity<Void> updateCityName(@RequestBody UpdateCityNameRequest request) {
+    @PostMapping("/{memberUsername}/updateCityName")
+    public ResponseEntity<Void> updateCityName(@PathVariable String memberUsername, @RequestHeader String memberToken, @RequestBody UpdateCityNameRequest request) {
         CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
         CitiesExecutors.setMapper(citiesMapper);
         var dto = citiesMapper.toCitiesEntity(request);
-        entities = executor.initializeCitiesService(false, dto);
-
-        if (entities.isEmpty())
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            entities = executor.initializeCitiesService(false, dto);
+            if (entities.isEmpty())
+                return ResponseEntity.badRequest().build();
+            else
+                return ResponseEntity.noContent().build();
+        } else {
             return ResponseEntity.badRequest().build();
-        else
-            return ResponseEntity.noContent().build();
+        }
     }
 
 
-    @PutMapping("/updateCityPopulation")
-    public ResponseEntity<Void> updateCitiesPopulation(@RequestBody UpdateCityPopulation request) {
+    @PostMapping("{memberUsername}/updateCityPopulation")
+    public ResponseEntity<Void> updateCitiesPopulation(@RequestHeader String memberToken, @PathVariable String memberUsername, @RequestBody UpdateCityPopulation request) {
         CitiesService.SERVICE_TRIGGER = "UPDATE_CITY_NAME";
         CitiesExecutors.setMapper(citiesMapper);
         var dto = citiesMapper.toCitiesEntity(request);
         entities = executor.initializeCitiesService(false, dto);
+        PropertiesUtilManager.setProperties("memberToken", memberToken);
+        PropertiesUtilManager.setProperties("memberUsername", memberUsername);
 
-        if (entities.isEmpty())
+        if (executor.checkMemberShipStatusAndTokenMatch()) {
+            entities = executor.initializeCitiesService(false, dto);
+            if (entities.isEmpty())
+                return ResponseEntity.badRequest().build();
+            else
+                return ResponseEntity.noContent().build();
+        } else {
             return ResponseEntity.badRequest().build();
-        else
-            return ResponseEntity.noContent().build();
+        }
     }
 
 }
