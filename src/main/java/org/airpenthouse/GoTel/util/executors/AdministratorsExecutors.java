@@ -2,7 +2,6 @@ package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
 import org.airpenthouse.GoTel.entities.administrator.AdministratorEntity;
-import org.airpenthouse.GoTel.entities.city.CitiesEntity;
 import org.airpenthouse.GoTel.util.CommonEntityMethod;
 
 import java.util.Optional;
@@ -14,7 +13,7 @@ public class AdministratorsExecutors extends CommonEntityMethod {
     private final ExecutorService executeAministrators;
 
     @Getter
-    private CitiesEntity entity;
+    private AdministratorEntity entity;
 
     protected AdministratorsExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
