@@ -1,8 +1,12 @@
 package org.airpenthouse.GoTel.util.executors;
 
 import lombok.Getter;
+import lombok.Setter;
+import org.airpenthouse.GoTel.dtos.administrators.AdministratorsRequest;
 import org.airpenthouse.GoTel.entities.administrator.AdministratorEntity;
+import org.airpenthouse.GoTel.services.administrator.AdministratorsService;
 import org.airpenthouse.GoTel.util.CommonEntityMethod;
+import org.airpenthouse.GoTel.util.mappers.AdministratorsMapper;
 
 import java.util.Optional;
 import java.util.Set;
@@ -14,7 +18,9 @@ public class AdministratorsExecutors extends CommonEntityMethod {
 
     @Getter
     private AdministratorEntity entity;
-
+    @Getter
+    @Setter
+    private static AdministratorsMapper mapper;
     protected AdministratorsExecutors() {
         final var noProcesses = Runtime.getRuntime().availableProcessors();
         executeAministrators = Executors.newFixedThreadPool(noProcesses);
@@ -40,6 +46,26 @@ public class AdministratorsExecutors extends CommonEntityMethod {
         futureCollection = executeAministrators.submit(new AdministratorEntity());
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
 
+    }
+
+    protected Set<AdministratorsRequest> initializeCountriesService() {
+        return executeCountriesService();
+    }
+
+    private Set<AdministratorsRequest> executeCountriesService() {
+        try {
+            return this.implAdministratorsServviceExecution();
+        } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
+            throw new RuntimeException("Error occurred :" + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<AdministratorsRequest> implAdministratorsServviceExecution() throws ExecutionException, InterruptedException, TimeoutException {
+        Future<Set<AdministratorsRequest>> futureCollection;
+        futureCollection = executeAministrators.submit(new AdministratorsService());
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
 
