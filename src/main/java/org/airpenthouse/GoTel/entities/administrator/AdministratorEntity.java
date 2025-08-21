@@ -1,8 +1,8 @@
 package org.airpenthouse.GoTel.entities.administrator;
 
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.AdministratorsExecutors;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 
-public class AdministratorEntity extends CommonEntityMethod implements Callable<Set<AdministratorEntity>> {
+public class AdministratorEntity extends AdministratorsExecutors implements Callable<Set<AdministratorEntity>> {
 
     @Getter
     private String administratorName, administratorSurname, administratorCellphoneNo, administratorEmailAddress, administratorToken, administratorPassword;
