@@ -1,6 +1,7 @@
 package org.airpenthouse.GoTel.services.administrator;
 
 import org.airpenthouse.GoTel.dtos.administrators.AdministratorsRequest;
+import org.airpenthouse.GoTel.entities.administrator.AdministratorEntity;
 import org.airpenthouse.GoTel.util.executors.AdministratorsExecutors;
 import org.airpenthouse.GoTel.util.mappers.AdministratorsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,36 +37,43 @@ public class AdministratorsService extends AdministratorsExecutors implements Ca
     }
 
     private Set<AdministratorsRequest> administrorLogin() {
+        AdministratorEntity.entityHandler = "ADMINISTRATOR_LOGIN";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
     }
 
     private Set<AdministratorsRequest> registorAdministror() {
+        AdministratorEntity.entityHandler = "REGISTRATOR_ADMINISTRATOR";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
 
     }
 
     private Set<AdministratorsRequest> updateAdministratorPassword() {
+        AdministratorEntity.entityHandler = "UPDATE_ADMINISTRATOR_PASSWORD";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
 
     }
 
     private Set<AdministratorsRequest> updateAdministratorToken() {
+        AdministratorEntity.entityHandler = "UPDATE_ADMINISTRATOR_TOKEN";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
 
     }
 
     private Set<AdministratorsRequest> findAdminstratorsByEmail() {
+        AdministratorEntity.entityHandler = "FIND_ADMINISTRATOR_BY_EMAIL";
+
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
 
     }
 
     private Set<AdministratorsRequest> findAdminstratorsByName() {
+        AdministratorEntity.entityHandler = "FIND_ADMINISTRATOR_BY_NAME";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
 
     }
 
     private Set<AdministratorsRequest> findAllAdminstrators() {
+        AdministratorEntity.entityHandler = "FIND_ALL_ADMINISTRATORS";
         return initializeAdministrAtOrEntity().stream().map(mapper::toDto).collect(Collectors.toSet());
-
     }
 }

@@ -61,7 +61,7 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> findAdminstratorsByName() {
         try {
             prepareResultSet = super.databaseConfig(findAllAdministratorsQuery);
-            prepareResultSet.setString(1, "administratorName");
+            prepareResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("administratorName"));
             var dbResults = prepareResultSet.executeQuery();
             return addDbDataToSet(dbResults);
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
@@ -72,7 +72,7 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> findAdminstratorsByEmail() {
         try {
             prepareResultSet = super.databaseConfig(findAllAdministratorsQuery);
-            prepareResultSet.setString(1, "administratorEmail");
+            prepareResultSet.setString(1, PropertiesUtilManager.getPropertiesValue("administratorEmail"));
             var dbResults = prepareResultSet.executeQuery();
             return addDbDataToSet(dbResults);
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
@@ -83,8 +83,8 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> updateAdministratorPassword() {
         try {
             prepareUpdateQuery = super.databaseConfig(findAllAdministratorsQuery);
-            prepareUpdateQuery.setString(2, "administratorEmail");
-            prepareUpdateQuery.setString(1, "administratorPassword");
+            prepareUpdateQuery.setString(2, getEntity().getAdministratorEmailAddress());
+            prepareUpdateQuery.setString(1, getEntity().getAdministratorPassword());
             var set = this.findAdminstratorsByEmail();
             if (set.size() == 1) {
                 prepareUpdateQuery.executeUpdate();
@@ -101,8 +101,8 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> updateAdministratorToken() {
         try {
             prepareUpdateQuery = super.databaseConfig(findAllAdministratorsQuery);
-            prepareUpdateQuery.setString(2, "administratorEmail");
-            prepareUpdateQuery.setString(1, "administratorToken");
+            prepareUpdateQuery.setString(2, getEntity().getAdministratorEmailAddress());
+            prepareUpdateQuery.setString(1, getEntity().getAdministratorToken());
             var set = this.findAdminstratorsByEmail();
             if (set.size() == 1) {
                 prepareUpdateQuery.executeUpdate();
@@ -127,8 +127,8 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> administrorLogin() {
         try {
             prepareUpdateQuery = super.databaseConfig(findAllAdministratorsQuery);
-            prepareUpdateQuery.setString(2, "administratorEmail");
-            prepareUpdateQuery.setString(1, "administratorPassword");
+            prepareUpdateQuery.setString(2, getEntity().getAdministratorEmailAddress());
+            prepareUpdateQuery.setString(1, getEntity().getAdministratorPassword());
             return addDbDataToSet(prepareResultSet.executeQuery());
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
@@ -138,12 +138,14 @@ public class AdministratorEntity extends AdministratorsExecutors implements Call
     private Set<AdministratorEntity> registorAdministror() {
         try {
             prepareUpdateQuery = super.databaseConfig(findAllAdministratorsQuery);
-            prepareUpdateQuery.setString(2, "adminisrtatorName");
-            prepareUpdateQuery.setString(1, "administratorPassword");
-            prepareUpdateQuery.setString(2, "administratorEmail");
-            prepareUpdateQuery.setString(1, "administratorPassword");
-            prepareUpdateQuery.setString(2, "administratorEmail");
-            prepareUpdateQuery.setString(1, "administratorPassword");
+            prepareUpdateQuery.setString(1, getEntity().getAdministratorName());
+            prepareUpdateQuery.setString(3, getEntity().getAdministratorPassword());
+            prepareUpdateQuery.setString(2, getEntity().getAdministratorSurname());
+            prepareUpdateQuery.setString(4, getEntity().getEntity().getAdministratorCellphoneNo());
+            prepareUpdateQuery.setString(5, getEntity().getAdministratorEmailAddress());
+            prepareUpdateQuery.setString(6, getEntity().getAdministratorToken());
+            prepareUpdateQuery.setString(7, LocalDateTime.now().toString());
+            PropertiesUtilManager.setProperties("AdministratorEmailAddress", getEntity().getAdministratorEmailAddress());
             var set = this.findAdminstratorsByEmail();
             if (set.isEmpty()) {
                 prepareUpdateQuery.executeUpdate();

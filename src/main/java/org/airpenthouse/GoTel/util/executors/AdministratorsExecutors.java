@@ -48,8 +48,16 @@ public class AdministratorsExecutors extends CommonEntityMethod {
 
     }
 
-    protected Set<AdministratorsRequest> initializeCountriesService() {
+    public Set<AdministratorsRequest> initializeCountriesService(boolean isResultSet, AdministratorEntity entity) {
+        if (isResultSet)
         return executeCountriesService();
+        else {
+            try {
+                return implAdministratorsServviceExecution(entity);
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Set<AdministratorsRequest> executeCountriesService() {
@@ -65,6 +73,14 @@ public class AdministratorsExecutors extends CommonEntityMethod {
     private Set<AdministratorsRequest> implAdministratorsServviceExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<Set<AdministratorsRequest>> futureCollection;
         futureCollection = executeAministrators.submit(new AdministratorsService());
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
+    }
+
+    private Set<AdministratorsRequest> implAdministratorsServviceExecution(AdministratorEntity entity) throws ExecutionException, InterruptedException, TimeoutException {
+        Future<Set<AdministratorsRequest>> futureCollection;
+        this.entity = entity;
+        futureCollection = executeAministrators.submit(new AdministratorsService(
+        ));
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
