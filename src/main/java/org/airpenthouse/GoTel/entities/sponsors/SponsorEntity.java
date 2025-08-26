@@ -3,8 +3,8 @@ package org.airpenthouse.GoTel.entities.sponsors;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.airpenthouse.GoTel.util.CommonEntityMethod;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
+import org.airpenthouse.GoTel.util.executors.SponsorsExecutors;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @AllArgsConstructor
-public class SponsorEntity extends CommonEntityMethod implements Callable<List<SponsorEntity>> {
+public class SponsorEntity extends SponsorsExecutors implements Callable<List<SponsorEntity>> {
 
     @Getter
     private String sponsorName, SponsorSurname, sponsorEmailAddress, sponsorCellphoneNumber,
@@ -97,16 +97,16 @@ public class SponsorEntity extends CommonEntityMethod implements Callable<List<S
     private List<SponsorEntity> insertDonate() {
         try {
             prepareInsert = databaseConfig(this.jdbcQueryInsertSponsor);
-            prepareInsert.setString(1, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(2, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(3, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(4, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(5, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(6, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(7, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(8, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(9, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
-            prepareInsert.setString(10, PropertiesUtilManager.getPropertiesValue("sponsorsName"));
+            prepareInsert.setString(1, getEntity().getSponsorName());
+            prepareInsert.setString(2, getEntity().getSponsorSurname());
+            prepareInsert.setString(3, getEntity().getSponsorCellphoneNumber());
+            prepareInsert.setString(4, getEntity().getSponsorEmailAddress());
+            prepareInsert.setString(5, getEntity().getCardNumber());
+            prepareInsert.setString(6, getEntity().getCardDate());
+            prepareInsert.setString(7, getEntity().getSponsorReasonToDonate());
+            prepareInsert.setDouble(8, getEntity().getDononationAmount());
+            prepareInsert.setString(9, getEntity().getPaymentDate().toString());
+
             var entity = getSponsorByName();
             if (entity.isEmpty()) {
                 prepareInsert.executeUpdate();
