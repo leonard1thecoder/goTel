@@ -42,6 +42,17 @@ public class SponsorsExecutors extends CommonEntityMethod {
         return executeSponsorsEntity();
     }
 
+    public List<SponsorsRequest> initializeSponsorsService(boolean isResultSet, SponsorEntity entity) {
+        if (isResultSet)
+            return executeSponsorsService();
+        else {
+            try {
+                return impSponsorsServiceExecution(entity);
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     private List<SponsorEntity> impSponsorsEntityExecution() throws ExecutionException, InterruptedException, TimeoutException {
         Future<List<SponsorEntity>> futureCollection;
@@ -56,6 +67,12 @@ public class SponsorsExecutors extends CommonEntityMethod {
         return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
     }
 
+    private List<SponsorsRequest> impSponsorsServiceExecution(SponsorEntity entity) throws ExecutionException, InterruptedException, TimeoutException {
+        this.entity = entity;
+        Future<List<SponsorsRequest>> futureCollection;
+        futureCollection = executor.submit(new SponsorsService());
+        return Optional.of(futureCollection.get(15, TimeUnit.SECONDS)).get();
+    }
     private List<SponsorsRequest> executeSponsorsService() {
         try {
             return this.impSponsorsServiceExecution();
