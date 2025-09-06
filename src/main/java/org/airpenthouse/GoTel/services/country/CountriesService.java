@@ -1,6 +1,5 @@
 package org.airpenthouse.GoTel.services.country;
 
-import org.airpenthouse.GoTel.dtos.countries.CountriesRequest;
 import org.airpenthouse.GoTel.dtos.countries.MembershipCountriesRequest;
 import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
 import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
@@ -49,7 +48,7 @@ public class CountriesService extends CountriesExecutors implements Callable<Set
 
     @Override
     public Set<? extends CountriesRequestCombiner> call() {
-
+        mapper = CountriesExecutors.getMapper();
         return switch (SERVICE_HANDLER) {
             case "FIND_ALL_COUNTRIES" -> getAllCountries();
             case "FIND_COUNTRY_BY_NAME" -> getCountryByName();
