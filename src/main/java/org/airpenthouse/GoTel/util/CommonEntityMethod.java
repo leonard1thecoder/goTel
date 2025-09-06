@@ -13,10 +13,13 @@ import static org.airpenthouse.GoTel.util.Connect.getInstance;
 public class CommonEntityMethod {
 
     private final String jdbcQueryFindCountryCode;
-    private final MembershipEntity membershipEntity;
+    private static MembershipEntity membershipEntity;
+
+    static {
+        membershipEntity = new MembershipEntity();
+    }
 
     protected CommonEntityMethod() {
-        membershipEntity = new MembershipEntity();
         jdbcQueryFindCountryCode = PropertiesUtilManager.getPropertiesValue("jdbc.query.findCountryCodeByCountry");
     }
 
@@ -38,9 +41,10 @@ public class CommonEntityMethod {
     }
 
     public boolean checkMemberShipStatusAndTokenMatch() {
-        var set = this.membershipEntity.getMemberByToken();
-        var set2 = this.membershipEntity.getMemberByUsername();
+
         try {
+            var set = this.membershipEntity.getMemberByToken();
+            var set2 = this.membershipEntity.getMemberByUsername();
             if (set.size() == 1 && set2.size() == 1) {
                 var memberList = set.stream().toList();
                 var memberStatus = memberList.get(0).getMembershipStatus();
