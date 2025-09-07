@@ -36,7 +36,6 @@ public final class MembershipEntity extends MembershipExecutor implements Callab
 
     public static String entityHandle;
 
-    @Autowired
     public MembershipEntity() {
         this.getMemberByUsername = PropertiesUtilManager.getPropertiesValue("jdbc.query.getMemberByUsername");
         this.getAllMembersQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllMembers");

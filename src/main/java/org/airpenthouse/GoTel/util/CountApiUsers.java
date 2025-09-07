@@ -2,6 +2,7 @@ package org.airpenthouse.GoTel.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
@@ -14,6 +15,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ToString
 @AllArgsConstructor
 public class CountApiUsers extends CommonEntityMethod {
 
@@ -172,7 +174,8 @@ public class CountApiUsers extends CommonEntityMethod {
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers++);
+                var no = list.get(0).countWorldCountriesUsers++;
+                updatePreparedStatement.setInt(1, no);
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -221,7 +224,7 @@ public class CountApiUsers extends CommonEntityMethod {
         ResultSet set = st.executeQuery();
 
         while (set.next()) {
-            list.add(new CountApiUsers(set.getInt(5), set.getInt(3), set.getInt(4)));
+            list.add(new CountApiUsers(set.getInt(4), set.getInt(6), set.getInt(5)));
         }
         set.close();
 
