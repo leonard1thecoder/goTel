@@ -1,6 +1,7 @@
 package org.airpenthouse.GoTel.services.country;
 
 import org.airpenthouse.GoTel.dtos.countries.MembershipCountriesRequest;
+import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
 import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
@@ -25,6 +26,9 @@ public class CountriesService extends CountriesExecutors implements Callable<Set
     }
 
     private Set<? extends CountriesRequestCombiner> getRequest() {
+        var count = new CountApiUsers();
+
+        count.updateWorldCountriesCount();
         if (checkMemberShipStatusAndTokenMatch())
             return initializeCountriesEntity().stream().map(mapper::mapToMembershipCountryRequest).collect(Collectors.toSet());
         else
