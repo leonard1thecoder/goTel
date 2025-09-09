@@ -30,10 +30,10 @@ public class CountriesExecutors extends CountApiUsers {
             Members with registered successful uses more threads than non membership
          */
         if (checkMemberShipStatusAndTokenMatch()) {
-            final var noProcesses = Runtime.getRuntime().availableProcessors();
+            final var noProcesses = Runtime.getRuntime().availableProcessors() * 2;
             executeCountries = Executors.newFixedThreadPool(noProcesses);
         } else {
-            final var noProcesses = Runtime.getRuntime().availableProcessors() * 2;
+            final var noProcesses = Runtime.getRuntime().availableProcessors() ;
             executeCountries = Executors.newFixedThreadPool(noProcesses);
         }
         return executeCountries;
