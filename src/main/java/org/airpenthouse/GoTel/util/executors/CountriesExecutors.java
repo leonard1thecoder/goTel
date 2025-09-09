@@ -41,7 +41,7 @@ public class CountriesExecutors extends CountApiUsers {
     private Set<CountriesEntity> executeCountriesEntity() {
         try {
             var set = this.implCountriesEntityExecution();
-            super.updateWorldCountriesCount();
+
             return set;
         } catch (ExecutionException | TimeoutException | InterruptedException | NullPointerException e) {
             throw new RuntimeException("Error occurred :" + e.getMessage());
