@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/membership")
+@CrossOrigin(origins="http://localhost:4200")
 public class MembershipController {
 
     @Autowired
