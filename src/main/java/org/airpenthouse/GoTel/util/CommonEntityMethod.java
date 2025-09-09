@@ -54,7 +54,6 @@ public class CommonEntityMethod {
                 throw new RuntimeException("Error getting token failed, due set size is not equal to 1");
             }
         } catch (NullPointerException e) {
-            Log.info("Loading to no member request");
             return false;
         }
     }
