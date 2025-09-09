@@ -14,6 +14,7 @@ import java.util.Set;
 
 @RequestMapping("/api/countries")
 @RestController
+@CrossOrigin(origins="http://localhost:4200")
 public class CountriesController {
     @Autowired
     public CountriesMapper mapper;
