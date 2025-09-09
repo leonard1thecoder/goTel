@@ -26,9 +26,9 @@ public class CountriesService extends CountriesExecutors implements Callable<Set
 
     private Set<? extends CountriesRequestCombiner> getRequest() {
         if (checkMemberShipStatusAndTokenMatch())
-            return initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
-        else
             return initializeCountriesEntity().stream().map(mapper::mapToMembershipCountryRequest).collect(Collectors.toSet());
+        else
+            return initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
     private Set<? extends CountriesRequestCombiner> getCountryByName() {
