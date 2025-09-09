@@ -3,7 +3,6 @@ package org.airpenthouse.GoTel.util;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,56 +11,52 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ToString
 @AllArgsConstructor
 public class CountApiUsers extends CommonEntityMethod {
 
-    private static final CountApiUsers instance = new CountApiUsers();
     @Getter
-    private Integer countWorldLanguagesUsers, countWorldCountriesUsers, countWorldCitiesUsersUsers;
+    private AtomicInteger countWorldLanguagesUsers = new AtomicInteger()
+            ,countWorldCountriesUsers = new AtomicInteger()
+            ,countWorldCitiesUsersUsers = new AtomicInteger();
     private String getCountsByMembershipQuery, getCountsQuery, upgradeWorldLanguageCountQuery, upgradeWorldCountriesCountQuery, upgradeWorldCitiesCountQuery;
     private PreparedStatement st, updatePreparedStatement;
     private ExecutorService executorService;
-    private Lock lock;
+
     @Getter
     private LocalDateTime modifiedDate;
     private DateTimeFormatter format;
 
-    protected CountApiUsers() {
+    public CountApiUsers() {
         super();
-        lock = new ReentrantLock();
+
         this.format = DateTimeFormatter.ofPattern("dd/MMM/yyyy hh:mm");
         executorService = Executors.newSingleThreadExecutor();
         getCountsByMembershipQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllCountByPrivilegeName");
         getCountsQuery = PropertiesUtilManager.getPropertiesValue("jdbc.query.getAllCounts");
         upgradeWorldLanguageCountQuery = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateLanguageCount");
-        upgradeWorldCountriesCountQuery = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateCitiesCount");
-        upgradeWorldCitiesCountQuery = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateCountriesCount");
+        upgradeWorldCitiesCountQuery = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateCitiesCount");
+        upgradeWorldCountriesCountQuery = PropertiesUtilManager.getPropertiesValue("jdbc.update.updateCountriesCount");
     }
 
     private CountApiUsers(Integer countWorldLanguagesUsers, Integer countWorldCountriesUsers, Integer countWorldCitiesUsersUsers) {
-        this.countWorldLanguagesUsers = countWorldLanguagesUsers;
-        this.countWorldCountriesUsers = (countWorldCountriesUsers);
-        this.countWorldCitiesUsersUsers = (countWorldCitiesUsersUsers);
-    }
-
-    public static CountApiUsers getInstance() {
-        return instance;
+        this.countWorldLanguagesUsers.set(countWorldLanguagesUsers);
+        this.countWorldCountriesUsers.set(countWorldCountriesUsers);
+        this.countWorldCitiesUsersUsers.set(countWorldCitiesUsersUsers);
     }
 
     protected void updateWorldLanguageCountForMembers() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldLanguageCountQuery);
             updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
 
-                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers++);
+                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -70,21 +65,19 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
     protected void updateWorldCitiesCountForMembers() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCitiesCountQuery);
             updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
 
-                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers++);
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -93,20 +86,18 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
     protected void updateWorldCountriesCountForMembers() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCountriesCountQuery);
             updatePreparedStatement.setString(3, Privileges.MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers++);
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -115,21 +106,19 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
     protected void updateWorldLanguageCount() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldLanguageCountQuery);
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
 
-                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers++);
+                updatePreparedStatement.setInt(1, list.get(0).countWorldLanguagesUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -138,21 +127,19 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
     protected void updateWorldCitiesCount() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCitiesCountQuery);
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
 
-                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers++);
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCitiesUsersUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -161,21 +148,19 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
-    protected void updateWorldCountriesCount() {
+    public void updateWorldCountriesCount() {
         try {
-            lock.lock();
+
             modifiedDate = LocalDateTime.now();
             updatePreparedStatement = databaseConfig(upgradeWorldCountriesCountQuery);
             updatePreparedStatement.setString(3, Privileges.NO_MEMBERSHIP.getMembershipName());
             var list = getCountiesByNoMembership();
             if (list.size() == 1) {
-                var no = list.get(0).countWorldCountriesUsers++;
-                updatePreparedStatement.setInt(1, no);
+
+                updatePreparedStatement.setInt(1, list.get(0).countWorldCountriesUsers.incrementAndGet());
                 updatePreparedStatement.setString(2, modifiedDate.format(format));
                 updatePreparedStatement.executeUpdate();
             } else {
@@ -184,14 +169,12 @@ public class CountApiUsers extends CommonEntityMethod {
 
         } catch (ExecutionException | InterruptedException | TimeoutException | SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
         }
     }
 
 
     public List<CountApiUsers> prepareToGetAllCounties() {
-        Future<List<CountApiUsers>> future = executorService.submit(instance::getAllCounties);
+        Future<List<CountApiUsers>> future = executorService.submit(this::getAllCounties);
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -224,6 +207,9 @@ public class CountApiUsers extends CommonEntityMethod {
         ResultSet set = st.executeQuery();
 
         while (set.next()) {
+            Log.info(" checking1: " + set.getInt(6));
+            Log.info(" checking2: " + set.getInt(4));
+            Log.info(" checking: " + set.getInt(5));
             list.add(new CountApiUsers(set.getInt(4), set.getInt(6), set.getInt(5)));
         }
         set.close();
