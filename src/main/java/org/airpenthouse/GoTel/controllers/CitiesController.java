@@ -19,6 +19,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/cities")
+@CrossOrigin(origins="http://localhost:4200")
 public class CitiesController {
     @Autowired
     public CitiesMapper citiesMapper;

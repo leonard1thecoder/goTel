@@ -19,6 +19,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/worldLanguages")
+@CrossOrigin(origins="http://localhost:4200")
 public class WorldLanguagesController {
 
     @Autowired
@@ -26,8 +27,6 @@ public class WorldLanguagesController {
     private Set<LanguageRequest> entities;
     @Autowired
     public WorldLanguagesService executor;
-
-
 
     @GetMapping("/findAllLanguages")
     public ResponseEntity<Set<LanguageRequest>> getAllLanguages() {
