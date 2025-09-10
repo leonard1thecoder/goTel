@@ -1,5 +1,6 @@
 package org.airpenthouse.GoTel.controllers;
 
+import jakarta.servlet.http.HttpSession;
 import org.airpenthouse.GoTel.services.country.CountriesService;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
@@ -22,10 +23,11 @@ public class CountriesController {
     public CountriesService executor;
     
     @GetMapping("/getAllCountries")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getAllCountries() {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getAllCountries(HttpSession session) {
         CountriesService.SERVICE_HANDLER = "FIND_ALL_COUNTRIES";
         CountriesExecutors.setMapper(mapper);
         Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+        session.setAttribute("_getAllCountries",entities);
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -34,13 +36,14 @@ public class CountriesController {
     }
 
     @GetMapping("/{memberUsername}/getAllCountries")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> membersGetAllCountries(@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> membersGetAllCountries(HttpSession session,@PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
         CountriesService.SERVICE_HANDLER = "FIND_ALL_COUNTRIES";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("memberUsername", memberUsername);
         PropertiesUtilManager.setProperties("memberToken", memberToken);
         if (executor.checkMemberShipStatusAndTokenMatch()) {
             Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+            session.setAttribute("_getAllCountriesMembers",entities);
             if (entities.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
@@ -52,7 +55,7 @@ public class CountriesController {
     }
 
     @GetMapping("/{memberUsername}/getCountryByName/{countryName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> membersGetCountryByName(@PathVariable String countryName, @PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> membersGetCountryByName(HttpSession session,@PathVariable String countryName, @PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_NAME";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("memberUsername", memberUsername);
@@ -60,6 +63,7 @@ public class CountriesController {
         PropertiesUtilManager.setProperties("memberToken", memberToken);
         if (executor.checkMemberShipStatusAndTokenMatch()) {
             Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+            session.setAttribute("_getAllCountriesMembership",entities);
             if (entities.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
@@ -71,24 +75,27 @@ public class CountriesController {
     }
 
     @GetMapping("/getCountryByName/{countryName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByName(@PathVariable String countryName) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByName(HttpSession session,@PathVariable String countryName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_NAME";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("countryName", countryName);
         Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+        session.setAttribute("_getAllCountries",entities);
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
+
         } else {
             return ResponseEntity.ok(entities);
         }
     }
 
     @GetMapping("/getCountryByContinent/{continentName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByContinent(@PathVariable String continentName) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByContinent(HttpSession session,@PathVariable String continentName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_CONTINENT";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("continentName", continentName);
         Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+        session.setAttribute("_getAllCountries",entities);
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -97,7 +104,7 @@ public class CountriesController {
     }
 
     @GetMapping("/{memberUsername}/getCountryByRegion/{regionName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> memberGetCountryByRegion(@PathVariable String regionName, @PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> memberGetCountryByRegion(HttpSession session,@PathVariable String regionName, @PathVariable String memberUsername, @RequestHeader(name = "x-auth-membership-token") String memberToken) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_REGION";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("regionName", regionName);
@@ -105,6 +112,7 @@ public class CountriesController {
         PropertiesUtilManager.setProperties("memberUsername", memberUsername);
         if (executor.checkMemberShipStatusAndTokenMatch()) {
             Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+            session.setAttribute("_getAllCountriesMembership",entities);
             if (entities.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
@@ -116,7 +124,7 @@ public class CountriesController {
     }
 
     @GetMapping("/{memberUsername}/getCountryByContinent/{continentName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> memberGetCountryByContinent(@PathVariable String continentName, @PathVariable String memberUsername, @RequestHeader String memberToken) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> memberGetCountryByContinent(HttpSession session,@PathVariable String continentName, @PathVariable String memberUsername, @RequestHeader String memberToken) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_CONTINENT";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("memberUsername", memberUsername);
@@ -125,6 +133,7 @@ public class CountriesController {
 
         if (executor.checkMemberShipStatusAndTokenMatch()) {
             Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+            session.setAttribute("_getAllCountries",entities);
             if (entities.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
@@ -136,11 +145,12 @@ public class CountriesController {
     }
 
     @GetMapping("/getCountryByRegion/{regionName}")
-    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByRegion(@PathVariable String regionName) {
+    public ResponseEntity<Set<? extends CountriesRequestCombiner>> getCountryByRegion(HttpSession session,@PathVariable String regionName) {
         CountriesService.SERVICE_HANDLER = "FIND_COUNTRY_BY_REGION";
         CountriesExecutors.setMapper(mapper);
         PropertiesUtilManager.setProperties("regionName", regionName);
         Set<? extends CountriesRequestCombiner> entities = executor.initializeCountriesService();
+        session.setAttribute("_getAllCountries",entities);
         if (entities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {

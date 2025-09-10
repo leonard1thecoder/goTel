@@ -5,6 +5,7 @@ import org.airpenthouse.GoTel.util.CountApiUsers;
 import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
 import org.airpenthouse.GoTel.util.executors.CountriesExecutors;
 import org.airpenthouse.GoTel.util.mappers.CountriesMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +21,7 @@ public class CountriesService extends CountriesExecutors implements Callable<Set
     private CountriesMapper mapper;
     private MembershipCountriesRequest membershipCountriesRequest;
 
+    @Cacheable("countriesAllData")
     private Set<? extends CountriesRequestCombiner> getAllCountries() {
         ENTITY_TRIGGER = "FIND_ALL_COUNTRIES";
         return getRequest();
@@ -35,16 +37,19 @@ public class CountriesService extends CountriesExecutors implements Callable<Set
             return initializeCountriesEntity().stream().map(mapper::mapper).collect(Collectors.toSet());
     }
 
+    @Cacheable("countriesDataByName")
     private Set<? extends CountriesRequestCombiner> getCountryByName() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_NAME";
         return getRequest();
     }
 
+    @Cacheable("CountriesDataContinent")
     private Set<? extends CountriesRequestCombiner> getCountryByContinent() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_CONTINENT";
         return getRequest();
     }
 
+    @Cacheable("CountriesDataByRegion")
     private Set<? extends CountriesRequestCombiner> getCountryByRegion() {
         ENTITY_TRIGGER = "FIND_COUNTRY_BY_REGION";
         return getRequest();

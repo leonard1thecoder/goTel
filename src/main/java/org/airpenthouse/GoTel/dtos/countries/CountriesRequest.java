@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.airpenthouse.GoTel.util.dto.binder.CountriesRequestCombiner;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @Getter
-public class CountriesRequest implements CountriesRequestCombiner {
+public class CountriesRequest implements CountriesRequestCombiner, Serializable {
     @JsonProperty("country_name")
     private String countryName;
     @JsonProperty("_country_region")
