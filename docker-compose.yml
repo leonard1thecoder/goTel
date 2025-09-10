@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379" # Expose Redis on port 6379
+    volumes:
+      - redis_data:/data # Persist data
+    command: ["redis-server", "--appendonly", "yes"] # Enable AOF persistence
+
+volumes:
+  redis_data:
+    driver: local
