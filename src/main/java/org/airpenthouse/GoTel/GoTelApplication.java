@@ -4,12 +4,10 @@ import org.airpenthouse.GoTel.util.Log;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.cache.annotation.EnableCaching;
 
-@Configuration
-@PropertySource("classpath:application.properties")
 @SpringBootApplication
+@EnableCaching
 public class GoTelApplication {
 
     public static void main(String[] args) {
