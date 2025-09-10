@@ -3,6 +3,8 @@ package org.airpenthouse.GoTel.entities.sponsors;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.airpenthouse.GoTel.util.PropertiesUtilManager;
 import org.airpenthouse.GoTel.util.executors.SponsorsExecutors;
 
@@ -13,17 +15,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.*;
 
+@ToString
 @AllArgsConstructor
 public class SponsorEntity extends SponsorsExecutors implements Callable<List<SponsorEntity>> {
 
     @Getter
     private String sponsorName, SponsorSurname, sponsorEmailAddress, sponsorCellphoneNumber,
             sponsorReasonToDonate;
-
+    @Setter
+    private String id;
     @Getter
     private String cardNumber, cvv, cardDate;
     @Getter
-    private Double dononationAmount;
+    private Long dononationAmount;
 
     @Getter
     private LocalDateTime paymentDate;
@@ -49,7 +53,7 @@ public class SponsorEntity extends SponsorsExecutors implements Callable<List<Sp
             , String cardNumber
             , String cvv
             , String cardDate
-            , Double dononationAmount
+            , Long dononationAmount
             , LocalDateTime paymentDate) {
         this.sponsorName = sponsorName;
         SponsorSurname = sponsorSurname;
@@ -132,7 +136,7 @@ public class SponsorEntity extends SponsorsExecutors implements Callable<List<Sp
                     , set.getString(6)
                     , set.getString(7)
                     , set.getString(8)
-                    , set.getDouble(9)
+                    , set.getLong(9)
                     , LocalDateTime.parse(set.getString(10))));
         }
         return entities;
