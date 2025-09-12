@@ -55,7 +55,6 @@ docker-compose up --build
 | `/api/countries`      | Returns list of countries            |
 | `/api/cities`         | Returns list of cities               |
 | `/api/languages`      | Returns list of languages            |
-> More details and parameters coming soon!
 
 ## 💡 Use Cases
 
