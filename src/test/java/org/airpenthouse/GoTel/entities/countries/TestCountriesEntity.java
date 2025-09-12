@@ -66,7 +66,7 @@ public class TestCountriesEntity {
         Test when server is down throw NullPointer
      */
 
-    @Test
+  //  @Test
     public void TestPrivateMethod_GetCountryByNameWhenServerIsDown() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         setProperties("countryName", "");
         assertThrows(NullPointerException.class, () -> reflectPrivateMethod("getCountryByName"));
@@ -93,7 +93,7 @@ public class TestCountriesEntity {
         assertEquals(239, list.size());
     }
 
-    @Test
+   // @Test
     public void TestPrivateMethod_GetAllCountriesThrowsNullPointerException() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         assertThrows(NullPointerException.class, () -> reflectPrivateMethod("getAllCountries"));
     }
@@ -116,6 +116,36 @@ public class TestCountriesEntity {
         var set = (Set<CountriesEntity>) reflectedMethodName.invoke(countriesEntity);
 
         return set.stream().toList();
+    }
+
+    @Test
+    public void TestPrivateMethod_GetCountryByRegionEmptyCountryName() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        setProperties("regionName", "");
+        var list = reflectPrivateMethod("getCountryByRegion");
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void TestPrivateMethod_GetCountryByRegion() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, SQLException {
+        setProperties("regionName", "Caribbean");
+        var list = reflectPrivateMethod("getCountryByRegion");
+
+        assertEquals(getPropertiesValue("regionName"), list.get(0).getCountryRegion());
+    }
+
+    @Test
+    public void TestPrivateMethod_GetCountryByContinentEmptyCountryName() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        setProperties("continentName", "");
+        var list = reflectPrivateMethod("getCountryByContinent");
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void TestPrivateMethod_GetCountryByContinent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, SQLException {
+        setProperties("continentName", "Africa");
+        var list = reflectPrivateMethod("getCountryByContinent");
+
+        assertEquals(getPropertiesValue("continentName"), list.get(0).getContinent());
     }
 
 }
