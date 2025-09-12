@@ -10,15 +10,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
-
 import static org.airpenthouse.GoTel.util.PropertiesUtilManager.*;
 import static org.junit.jupiter.api.Assertions.*;
+
 
 @ExtendWith(MockitoExtension.class)
 public class TestCountriesEntity {
 
+
+    @Mock
+    private ResultSet set;
     @Mock
     private PreparedStatement ps;
     @InjectMocks
@@ -35,15 +40,16 @@ public class TestCountriesEntity {
     }
 
     @AfterAll
-    public static void clean(){
+    public static void clean() {
 
     }
 
     @Test
-    public void TestPrivateMethod_GetCountryByName() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void TestPrivateMethod_GetCountryByName() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, SQLException {
         setProperties("countryName", "South Africa");
         var list = reflectPrivateMethod("getCountryByName");
-        assertTrue(list.get(0).getCountryName().equals(getPropertiesValue("countryName")));
+
+        assertEquals(getPropertiesValue("countryName"), list.get(0).getCountryName());
     }
 
     /*
@@ -63,7 +69,7 @@ public class TestCountriesEntity {
     @Test
     public void TestPrivateMethod_GetCountryByNameWhenServerIsDown() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         setProperties("countryName", "");
-        assertThrows(NullPointerException.class,()-> reflectPrivateMethod("getCountryByName"));
+        assertThrows(NullPointerException.class, () -> reflectPrivateMethod("getCountryByName"));
     }
 
     /*
@@ -75,6 +81,33 @@ public class TestCountriesEntity {
         var list = reflectPrivateMethod("getCountryByName");
         assertTrue(list.isEmpty());
     }
+
+    /*
+        Here testing we getting all countries
+        Countries Size : 239
+     */
+
+    @Test
+    public void TestPrivateMethod_GetAllCountries() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        var list = reflectPrivateMethod("getAllCountries");
+        assertEquals(239, list.size());
+    }
+
+    @Test
+    public void TestPrivateMethod_GetAllCountriesThrowsNullPointerException() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        assertThrows(NullPointerException.class, () -> reflectPrivateMethod("getAllCountries"));
+    }
+
+    @Test
+    public void TestPrivateMethod_addDataToSet() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method reflectedMethodName = CountriesEntity.class.getDeclaredMethod("addDataFromDbToSet",ResultSet.class);
+        reflectedMethodName.setAccessible(true);
+        var sets = (Set<CountriesEntity>)reflectedMethodName.invoke(countriesEntity,set);
+
+        assertTrue(sets.isEmpty());
+    }
+
+
 
     private List<CountriesEntity> reflectPrivateMethod(String methodName) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Method reflectedMethodName = CountriesEntity.class.getDeclaredMethod(methodName);
