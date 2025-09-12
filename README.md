@@ -21,6 +21,7 @@ Many frontend applications rely on hardcoded or mock data for dropdowns and sele
 - Java 17 or higher
 - Maven 3.8+
 - Docker (optional, for containerized deployment)
+- Wsl for redis commands
 
 ### Build & Run (Locally)
 
