@@ -10,7 +10,7 @@ Many frontend applications rely on hardcoded or mock data for dropdowns and sele
 
 - **RESTful Endpoints:** Quickly access lists of cities, countries, and languages.
 - **Real Data:** No more mock data—get actual up-to-date information.
-- **High Performance:** Built with Java Spring boot and optimized with concurrent programming for fast response times.
+- **High Performance:** Built with Java Spring boot and optimized with java concurrent programming for fast response times.
 - **Framework Agnostic:** Perfect for integration with Angular, JavaScript, React, Vue, and more.
 - **Easy Deployment:** Use Maven for builds and Docker Compose for containerized running.
 
