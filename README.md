@@ -4,7 +4,7 @@ goTel is a powerful backend application designed to serve real-world data for la
 
 ## 🚀 Value Proposition
 
-Many frontend applications rely on hardcoded or mock data for dropdowns and selection fields involving cities, countries, or languages. goTel solves this problem by providing a backend service powered by Java and Maven, delivering real data—fast and efficiently—using concurrent programming techniques and caching. This ensures your applications have access to accurate and timely information, enhancing user experience and reducing maintenance.
+Many frontend applications rely on hardcoded or mock data for dropdowns and selection fields involving cities, countries, or languages. goTel solves this problem by providing a backend service powered by Java Spring-boot framework and Maven, delivering real data—fast and efficiently—using concurrent programming techniques and caching. This ensures your applications have access to accurate and timely information, enhancing user experience and reducing maintenance.
 
 ## ✨ Features
 
